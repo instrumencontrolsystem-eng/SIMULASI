@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Twin Cara Kerja Instrument Level — ICS Cademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="levellab.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="icsnotice.js"></script>
+</head>
+<body>
+<div id="lk-canvas-host"></div>
+<div id="lk-labels"></div>
+<div id="cmp-modal" class="cmp-modal" style="display:none"><div class="cmp-box"><div class="cmp-head"><b>PERBANDINGAN 24 METODE PENGUKURAN LEVEL</b><span class="cmp-note">Nilai tipikal untuk bahan ajar; berbeda tiap produsen dan aplikasi. Bulatan penuh = lebih baik (5 = terbaik). Klik baris untuk membuka twin-nya. (Esc = tutup)</span><button class="btn" id="cmp-close">TUTUP &times;</button></div><div class="cmp-scroll"><table id="cmp-table"></table></div></div></div>
+
+<div class="hud">
+  <div class="hud-header">
+    <div class="hdr-left">
+      <div><h1>3D TWIN &middot; CARA KERJA INSTRUMENT LEVEL</h1><div class="sub">Tangki proses T-101 &middot; semua metode pengukuran level pada satu rig</div></div>
+    </div>
+    <div class="badges">
+      <span class="badge" id="state-pct">TAHAN</span>
+      <div class="hdr-method"><span id="hdr-method">-</span><small id="hdr-tag"></small></div>
+    </div>
+  </div>
+
+  <div class="hud-body">
+    <!-- KIRI: metode + kamera + tampilan -->
+    <div class="left">
+      <div class="panel"><div class="panel-title">METODE PENGUKURAN</div><button class="btn wide" id="btn-cmp">BANDINGKAN SEMUA METODE</button><div id="mth-list"></div></div>
+      <div class="panel"><div class="panel-title">KAMERA</div><div class="cam-grid" id="cam-btns"></div></div>
+      <div class="panel"><div class="panel-title">TAMPILAN</div>
+        <div class="btn-row" style="grid-template-columns:1fr 1fr"><button class="btn active" id="btn-xray">X-RAY (X)</button><button class="btn active" id="btn-lbl">LABEL (L)</button></div>
+        <div class="slider-wrap" style="margin-top:10px"><label><span>Ketebalan dinding tangki</span></label><input type="range" id="sl-xop" min="0.05" max="0.6" step="0.01" value="0.16"></div>
+      </div>
+    </div>
+
+    <div class="center-col"><div class="hint">Drag = putar &middot; Scroll = zoom &middot; Klik kanan + drag = geser &middot; X = X-Ray &middot; Spasi = siklus otomatis &middot; &uarr;&darr; = level &plusmn;5 %</div></div>
+
+    <!-- KANAN: pembacaan, proses, gangguan, cara kerja -->
+    <div class="right">
+      <div class="panel"><div class="panel-title">PEMBACAAN INSTRUMEN</div>
+        <div class="read-grid">
+          <div class="big"><div class="k">LEVEL SEBENARNYA</div><div class="v"><span id="h-true-m">--</span></div><div class="u">m</div><div class="s"><span id="h-true-p">--</span> %</div></div>
+          <div class="big"><div class="k" id="h-meas-k">LEVEL TERUKUR</div><div class="v c"><span id="h-meas-m">--</span></div><div class="u" id="h-meas-u">m</div><div class="s" id="h-meas-s"><span id="h-meas-p">--</span> %</div></div>
+        </div>
+        <div class="err-row"><span id="h-ma-l">Keluaran 4&ndash;20 mA</span><b style="color:#ffd27f"><span id="h-ma">--</span><span id="h-ma-u"> mA</span></b></div>
+        <div class="err-row" style="margin-top:5px"><span id="h-err-l">Selisih (terukur &minus; sebenarnya)</span><span><b id="h-err">--</b> mm</span></div>
+        <div class="note" id="h-note"></div>
+        <div id="h-rows" style="margin-top:6px"></div>
+        <div id="h-fluid"></div>
+      </div>
+
+      <div class="panel" id="pc-panel"><div class="panel-title">KELEBIHAN &amp; KEKURANGAN</div>
+        <div id="pc-specs" class="pc-specs"></div>
+        <div class="pc-box pro"><h4>+ KELEBIHAN</h4><ul id="pc-pro"></ul></div>
+        <div class="pc-box con"><h4>&minus; KEKURANGAN / SUMBER KESALAHAN</h4><ul id="pc-con"></ul></div>
+        <div class="pc-fit"><div><b>Paling cocok:</b> <span id="pc-best"></span></div><div><b>Hindari bila:</b> <span id="pc-avoid"></span></div></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">PROSES &mdash; ATUR LEVEL TANGKI</div>
+        <div class="slider-wrap"><label><span>Target level</span><b id="sv-level">50 %</b></label><input type="range" id="sl-level" min="0" max="100" step="1" value="50"></div>
+        <div class="btn-row"><button class="btn" id="btn-fill">ISI</button><button class="btn" id="btn-drain">KOSONG</button><button class="btn" id="btn-hold">TAHAN</button><button class="btn" id="btn-auto">AUTO</button></div>
+        <div class="slider-wrap" style="margin-top:12px"><label><span>Fluida</span></label><select id="sel-fluid"></select></div>
+        <div class="slider-wrap"><label><span>Suhu fluida</span><b id="sv-temp">25 &deg;C</b></label><input type="range" id="sl-temp" min="5" max="90" step="1" value="25"></div>
+      </div>
+
+      <div class="panel" id="dist-panel"><div class="panel-title">GANGGUAN / KONDISI PROSES</div><div id="ctl-dist"></div></div>
+
+      <div class="panel"><div class="panel-title">TREN LEVEL (60 detik)</div><canvas class="chart" id="trend-canvas" width="340" height="120"></canvas></div>
+
+      <div class="panel" id="trace-panel" style="display:none"><div class="panel-title"><span id="trace-title">ECHO</span></div><canvas class="chart" id="trace-canvas" width="340" height="150"></canvas></div>
+
+      <div class="panel"><div class="panel-title">CARA KERJA</div><div id="info-box"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="plantkit3d.js"></script>
+<script src="levelkit.js"></script>
+<script src="m_wave.js"></script>
+<script src="m_pressure.js"></script>
+<script src="m_visual.js"></script>
+<script src="m_electric.js"></script>
+<script src="m_nonintrusive.js"></script>
+<script src="m_switch.js"></script>
+<script src="specs.js"></script>
+<script>
+window.addEventListener('load', function () { LK.start(); });
+</script>
+</body>
+</html>
