@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Twin Instrument Hazardous Area (Ex / ATEX) — ICS Cademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="twin_common.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="icsnotice.js" onerror="window.ICS_NOTICE_MISSING=true"></script>
+</head>
+<body>
+<div id="lk-canvas-host"></div>
+<div id="lk-labels"></div>
+<div id="redalert"></div>
+<div id="flash"></div>
+<div id="banner" class="banner"></div>
+
+<div class="hud">
+  <div class="hud-header">
+    <div class="hdr-left">
+      <div><h1>3D TWIN &middot; INSTRUMENT AREA BERBAHAYA (Ex / ATEX)</h1><div class="sub">Transmitter di Zona 1 dekat flange yang bocor &middot; pilih jenis proteksi &rarr; bocorkan gas &rarr; gagalkan instrument &rarr; lihat hasilnya</div></div>
+    </div>
+    <div class="badges">
+      <span class="badge" id="state-badge">NORMAL</span>
+      <div class="hdr-method"><span id="hdr-mark">-</span><small id="hdr-sub"></small></div>
+    </div>
+  </div>
+
+  <div class="hud-body">
+    <!-- KIRI -->
+    <div class="left">
+      <div class="panel"><div class="panel-title">PILIH INSTRUMEN (ZONA 1 &middot; Gb)</div>
+        <div id="inst-cards"></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">GAS &amp; KEBOCORAN</div>
+        <div class="slider-wrap" style="margin-top:0"><label><span>Gas proses</span></label><select id="sel-gas"></select></div>
+        <div class="slider-wrap"><label><span>Ukuran kebocoran</span></label><select id="sel-size"><option value="small">Kecil (0,03 kg/s)</option><option value="medium" selected>Sedang (0,12 kg/s)</option><option value="large">Besar (0,5 kg/s)</option></select></div>
+        <div class="slider-wrap"><label><span>Kecepatan angin</span><b id="sv-wind">2,5 m/s</b></label><input type="range" id="sl-wind" min="0.3" max="8" step="0.1" value="2.5"></div>
+        <div class="slider-wrap"><label><span>Arah angin (menuju)</span><b id="sv-dir">20&deg;</b></label><input type="range" id="sl-dir" min="0" max="359" step="1" value="20"></div>
+        <label class="chk"><input type="checkbox" id="chk-esd" checked> ESD otomatis saat detektor &ge; 40 % LEL</label>
+      </div>
+
+      <div class="panel"><div class="panel-title">KAMERA</div><div class="cam-grid" id="cam-btns"></div></div>
+      <div class="panel"><div class="panel-title">TAMPILAN</div>
+        <div class="btn-row c4"><button class="btn active" id="btn-xray">X-RAY</button><button class="btn active" id="btn-lbl">LABEL</button><button class="btn active" id="btn-zone">ZONA</button><button class="btn active" id="btn-cloud">AWAN</button></div>
+        <div class="slider-wrap" style="margin-top:8px"><label><span>Ketebalan dinding enklosur</span></label><input type="range" id="sl-xop" min="0.05" max="0.6" step="0.01" value="0.2"></div>
+      </div>
+    </div>
+
+    <div class="center-col"><div class="hint">Drag = putar &middot; Scroll = zoom &middot; Klik kanan + drag = geser &middot; X = X-Ray &middot; L = label &middot; Spasi = skenario otomatis</div></div>
+
+    <!-- KANAN -->
+    <div class="right">
+      <div class="panel"><div class="panel-title">SKENARIO</div>
+        <div class="slider-wrap" style="margin-top:0"><label><span>Mode kegagalan instrument</span></label><select id="sel-mode"></select></div>
+        <div class="btn-row"><button class="btn" id="btn-leak">1. BUKA KEBOCORAN</button><button class="btn danger" id="btn-fail">2. GAGALKAN INSTRUMEN</button></div>
+        <div class="btn-row"><button class="btn go" id="btn-auto">JALANKAN OTOMATIS</button><button class="btn" id="btn-esd">ESD MANUAL</button></div>
+        <button class="btn wide" id="btn-reset" style="margin-top:6px">RESET</button>
+        <div class="note" id="scn-note">Tekan <b>JALANKAN OTOMATIS</b>: gas bocor, awan mencapai instrument, lalu instrument gagal.</div>
+      </div>
+
+      <div class="panel"><div class="panel-title">ATMOSFER DI INSTRUMEN</div>
+        <div class="read-grid">
+          <div class="big"><div class="k">KONSENTRASI GAS</div><div class="v c" id="c-vol">0,0</div><div class="u">% vol</div><div class="s"><span id="c-lel">0</span> % LEL</div></div>
+          <div class="big"><div class="k">DETEKTOR GD-201</div><div class="v" id="gd-lel">0</div><div class="u">% LEL</div><div class="s" id="gd-state">normal</div></div>
+        </div>
+        <div style="margin-top:8px"><canvas class="chart" id="flam-canvas" width="340" height="46"></canvas></div>
+        <div class="kv" style="margin-top:6px"><span>Rentang mudah terbakar</span><b id="k-range">--</b></div>
+        <div class="kv"><span>Sumber kebocoran / status</span><b id="k-leak">tidak bocor</b></div>
+        <div class="kv"><span>ESD / depresurisasi</span><b id="k-esd">siaga</b></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">CEK KESESUAIAN INSTRUMEN vs AREA</div><div id="compat"></div></div>
+
+      <div class="panel"><div class="panel-title">ENERGI PENYALAAN: PERCIKAN vs MIE GAS</div>
+        <canvas class="chart" id="en-canvas" width="340" height="128"></canvas>
+        <div class="note" id="en-note"></div>
+      </div>
+
+      <div class="panel" id="res-panel"><div class="panel-title">HASIL KEGAGALAN</div>
+        <div id="res-box" class="info-box">Belum ada kejadian.</div>
+      </div>
+
+      <div class="panel"><div class="panel-title">KONDISI INSTALASI</div>
+        <div id="dmg-bars"></div>
+        <div class="kv" style="margin-top:4px"><span>Fluks panas di bejana V-201</span><b id="k-flux">0 kW/m&sup2;</b></div>
+        <div class="note">Ambang acuan: 1,6 kW/m&sup2; aman terus-menerus &middot; 12,5 kW/m&sup2; kayu terbakar &middot; 37,5 kW/m&sup2; kerusakan peralatan.</div>
+      </div>
+
+      <div class="panel"><div class="panel-title">CARA KERJA &amp; ISTILAH</div><div id="info-box" class="info-box"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="twin_core.js"></script>
+<script src="twin_site.js"></script>
+<script src="twin_hazardous.js"></script>
+<script>window.addEventListener('load', function () { HZ.start(); });</script>
+</body>
+</html>

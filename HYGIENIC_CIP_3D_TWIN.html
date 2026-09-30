@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Twin Instrument Hygienic &amp; CIP (Food / Farmasi) — ICS Cademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="twin_common.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="icsnotice.js" onerror="window.ICS_NOTICE_MISSING=true"></script>
+</head>
+<body>
+<div id="lk-canvas-host"></div>
+<div id="lk-labels"></div>
+<div id="banner" class="banner"></div>
+
+<div class="hud">
+  <div class="hud-header">
+    <div class="hdr-left">
+      <div><h1>3D TWIN &middot; INSTRUMENT HYGIENIC &amp; PROSES CIP</h1><div class="sub">Jalur proses food &amp; farmasi &middot; ganti instrument &rarr; jalankan CIP &rarr; lihat sisa kotoran &amp; kontaminasi produk berikutnya</div></div>
+    </div>
+    <div class="badges">
+      <span class="badge" id="state-badge">SIAP</span>
+      <div class="hdr-method"><span id="hdr-step">PRODUK A SELESAI &mdash; JALUR KOTOR</span><small id="hdr-time">T+ 00:00</small></div>
+    </div>
+  </div>
+
+  <div class="hud-body">
+    <!-- KIRI -->
+    <div class="left">
+      <div class="panel"><div class="panel-title">INSTRUMEN TERPASANG (GANTI DI SINI)</div>
+        <div id="inst-list"></div>
+        <div class="btn-row c3" style="margin-top:8px"><button class="btn go" data-preset="good" title="Semua hygienic">SEMUA HYGIENIC</button><button class="btn" data-preset="mix" title="Campuran">CAMPUR</button><button class="btn danger" data-preset="bad" title="Semua non-hygienic">SEMUA NON-HYG.</button></div>
+        <div class="note">Mengganti instrument mereset siklus: jalur kembali <b>kotor</b> setelah Produk A. Coba pasang yang <b>non-hygienic</b>, jalankan CIP, lalu lihat Batch B.</div>
+      </div>
+
+      <div class="panel"><div class="panel-title">PROGRAM CIP &mdash; LINGKARAN SINNER (T-A-C-T)</div>
+        <div class="slider-wrap" style="margin-top:0"><label><span>Suhu kaustik (Temperature)</span><b id="sv-tc">75 &deg;C</b></label><input type="range" id="sl-tc" min="45" max="85" step="1" value="75"></div>
+        <div class="slider-wrap"><label><span>Konsentrasi NaOH (Chemistry)</span><b id="sv-conc">1,5 %</b></label><input type="range" id="sl-conc" min="0.5" max="3" step="0.1" value="1.5"></div>
+        <div class="slider-wrap"><label><span>Kecepatan alir (Action)</span><b id="sv-vel">1,5 m/s</b></label><input type="range" id="sl-vel" min="0.4" max="2.5" step="0.1" value="1.5"></div>
+        <div class="slider-wrap"><label><span>Waktu kontak kaustik (Time)</span><b id="sv-tcaus">20 mnt</b></label><input type="range" id="sl-tcaus" min="5" max="45" step="1" value="20"></div>
+        <label class="chk"><input type="checkbox" id="chk-acid" checked> Tahap asam HNO&#8323; (hilangkan kerak mineral)</label>
+        <label class="chk"><input type="checkbox" id="chk-sani" checked> Sanitasi air panas 90&deg;C</label>
+        <div class="slider-wrap"><label><span>Jeda sebelum Batch B</span><b id="sv-hold">8 jam</b></label><input type="range" id="sl-hold" min="0" max="48" step="1" value="8"></div>
+        <div class="slider-wrap"><label><span>Kecepatan simulasi</span><b id="sv-speed">&times;240</b></label><input type="range" id="sl-speed" min="30" max="1200" step="30" value="240"></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">KAMERA</div><div class="cam-grid" id="cam-btns"></div></div>
+      <div class="panel"><div class="panel-title">TAMPILAN</div>
+        <div class="btn-row c3"><button class="btn active" id="btn-xray">X-RAY (X)</button><button class="btn active" id="btn-lbl">LABEL (L)</button><button class="btn active" id="btn-res">RESIDU (R)</button></div>
+        <div class="slider-wrap" style="margin-top:8px"><label><span>Ketebalan dinding</span></label><input type="range" id="sl-xop" min="0.05" max="0.6" step="0.01" value="0.16"></div>
+      </div>
+    </div>
+
+    <div class="center-col"><div class="hint">Drag = putar &middot; Scroll = zoom &middot; Klik kanan + drag = geser &middot; X = X-Ray &middot; L = label &middot; R = residu &middot; Spasi = jalankan / reset siklus</div></div>
+
+    <!-- KANAN -->
+    <div class="right">
+      <div class="panel"><div class="panel-title">KENDALI SIKLUS</div>
+        <div class="btn-row"><button class="btn go" id="btn-run">JALANKAN CIP &rarr; BATCH B</button><button class="btn" id="btn-reset">RESET (JALUR KOTOR)</button></div>
+        <label class="chk"><input type="checkbox" id="chk-auto" checked> Lanjut otomatis ke Batch B setelah CIP</label>
+        <button class="btn wide" id="btn-next" style="margin-top:6px;display:none">LANJUT &rarr; JEDA &amp; PRODUKSI BATCH B</button>
+        <div id="steps" style="margin-top:8px"></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">PROSES SAAT INI</div>
+        <div class="kv"><span>Fluida di jalur</span><b id="r-fluid">--</b></div>
+        <div class="kv"><span>Suhu balik (TT-101)</span><b id="r-temp">--</b></div>
+        <div class="kv"><span>Konduktivitas balik</span><b id="r-cond">--</b></div>
+        <div class="kv"><span>Kecepatan / debit (FT-101)</span><b id="r-flow">--</b></div>
+        <div class="kv"><span>Tekanan (PT-101)</span><b id="r-pres">--</b></div>
+        <div class="kv"><span>Level tangki (LT-101)</span><b id="r-lvl">--</b></div>
+        <canvas class="chart" id="trend-canvas" width="340" height="132" style="margin-top:7px"></canvas>
+      </div>
+
+      <div class="panel"><div class="panel-title">RESIDU PER TITIK (SISA KOTORAN)</div><div id="res-bars"></div>
+        <div class="note" id="res-note"></div></div>
+
+      <div class="panel"><div class="panel-title">VALIDASI PASCA-CIP (SWAB ATP &amp; BILAS AKHIR)</div>
+        <table class="mini"><thead><tr><th>Titik</th><th>ATP (RLU)</th><th>Hasil</th></tr></thead><tbody id="atp-body"></tbody></table>
+        <div class="kv" style="margin-top:5px"><span>Konduktivitas bilas akhir</span><b id="v-cond">--</b></div>
+        <div class="note">Batas ilustratif: ATP &lt; 150 RLU &middot; konduktivitas bilas akhir &lt; 0,6 mS/cm. Nilai untuk bahan ajar.</div>
+      </div>
+
+      <div class="panel" id="prodb-panel"><div class="panel-title">PRODUK BATCH B (SETELAH CIP)</div>
+        <div class="row-bar"><div class="hd"><span>Progres batch</span><b id="pb-prog">0 %</b></div><div class="bar"><i id="pb-bar"></i></div></div>
+        <div class="kv"><span>Mikroba dalam produk</span><b id="pb-cfu">--</b></div>
+        <div class="kv"><span>Sisa produk A (lintas-kontaminasi)</span><b id="pb-ppm">--</b></div>
+        <div class="kv"><span>Keputusan batch</span><b id="pb-verdict">--</b></div>
+        <div class="note" id="pb-note">Batas ilustratif: &le; 100 CFU/mL dan &le; 0,5 ppm sisa produk A.</div>
+      </div>
+
+      <div class="panel"><div class="panel-title">CARA KERJA &amp; KENAPA</div><div id="info-box" class="info-box"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="twin_core.js"></script>
+<script src="twin_site.js"></script>
+<script src="twin_hygienic.js"></script>
+<script>window.addEventListener('load', function () { HY.start(); });</script>
+</body>
+</html>
