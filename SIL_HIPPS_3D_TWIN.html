@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Twin Instrument Safety SIL &amp; HIPPS 2oo3 — ICS Cademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="twin_common.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+<div id="lk-canvas-host"></div>
+<div id="lk-labels"></div>
+<div id="redalert"></div>
+<div id="flash"></div>
+<div id="banner" class="banner"></div>
+
+<div class="hud">
+  <div class="hud-header">
+    <div class="hdr-left">
+      <div><h1>3D TWIN &middot; INSTRUMENT SAFETY SIL &amp; HIPPS 2oo3</h1><div class="sub">HIPPS &middot; 3 transmitter tekanan voting 2oo3 &middot; 2 valve seri &middot; logic solver SIL 3 &middot; lindungi pipa hilir bertekanan desain 60 bar</div></div>
+    </div>
+    <div class="badges">
+      <span class="badge" id="state-badge">SIAGA</span>
+      <div class="hdr-method"><span id="hdr-sil">SIF: --</span><small id="hdr-sub"></small></div>
+    </div>
+  </div>
+
+  <div class="hud-body">
+    <!-- KIRI -->
+    <div class="left">
+      <div class="panel"><div class="panel-title">ARSITEKTUR SIF (SENSOR &rarr; LOGIC &rarr; VALVE)</div>
+        <div class="slider-wrap" style="margin-top:0"><label><span>Voting sensor tekanan</span></label>
+          <select id="sel-arch"><option value="1oo1">1oo1 &mdash; 1 transmitter</option><option value="1oo2">1oo2 &mdash; trip bila 1 dari 2</option><option value="2oo2">2oo2 &mdash; trip bila 2 dari 2</option><option value="2oo3" selected>2oo3 &mdash; trip bila 2 dari 3 (TMR)</option></select></div>
+        <div class="slider-wrap"><label><span>Final element</span></label>
+          <select id="sel-fe"><option value="1">1 valve (1oo1)</option><option value="2" selected>2 valve seri (1oo2)</option></select></div>
+        <label class="chk"><input type="checkbox" id="chk-hipps" checked> HIPPS aktif (tanpa: hanya PSV)</label>
+        <label class="chk"><input type="checkbox" id="chk-psv" checked> PSV 60 bar ke flare (kapasitas terbatas)</label>
+        <div class="slider-wrap"><label><span>Setpoint trip</span><b id="sv-sp">48 bar</b></label><input type="range" id="sl-sp" min="42" max="58" step="1" value="48"></div>
+        <div class="slider-wrap"><label><span>Waktu tutup valve (stroke)</span><b id="sv-tc">1,5 s</b></label><input type="range" id="sl-tc" min="0.5" max="15" step="0.5" value="1.5"></div>
+        <div class="slider-wrap"><label><span>Interval proof test</span><b id="sv-ti">1,0 tahun</b></label><input type="range" id="sl-ti" min="0.25" max="5" step="0.25" value="1"></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">GANGGUAN PROSES</div>
+        <div class="slider-wrap" style="margin-top:0"><label><span>Skenario</span></label>
+          <select id="sel-scn"><option value="kick">Kick sumur + PCV terbuka (sangat cepat)</option><option value="pcv">PCV-101 gagal terbuka (cepat)</option><option value="block">Hilir tersumbat (lambat)</option></select></div>
+        <div class="btn-row"><button class="btn danger" id="btn-dist">PICU GANGGUAN</button><button class="btn" id="btn-reset">RESET NORMAL</button></div>
+        <div class="note" id="scn-note"></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">INJEKSI KEGAGALAN KOMPONEN</div>
+        <div class="slider-wrap" style="margin-top:0"><label><span style="color:#5cf0ff">PT-101A</span></label><select id="f-pta"></select></div>
+        <div class="slider-wrap"><label><span style="color:#ff7be5">PT-101B</span></label><select id="f-ptb"></select></div>
+        <div class="slider-wrap"><label><span style="color:#ffd27f">PT-101C</span></label><select id="f-ptc"></select></div>
+        <div class="btn-row"><label class="chk" style="margin:0"><input type="checkbox" id="f-xva"> XV-101A macet terbuka</label><label class="chk" style="margin:0"><input type="checkbox" id="f-xvb"> XV-101B macet terbuka</label></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">KAMERA</div><div class="cam-grid" id="cam-btns"></div></div>
+      <div class="panel"><div class="panel-title">TAMPILAN</div>
+        <div class="btn-row"><button class="btn active" id="btn-xray">X-RAY (X)</button><button class="btn active" id="btn-lbl">LABEL (L)</button></div>
+        <div class="slider-wrap" style="margin-top:8px"><label><span>Ketebalan dinding</span></label><input type="range" id="sl-xop" min="0.05" max="0.6" step="0.01" value="0.2"></div>
+      </div>
+    </div>
+
+    <div class="center-col"><div class="hint">Drag = putar &middot; Scroll = zoom &middot; Klik kanan + drag = geser &middot; X = X-Ray &middot; L = label &middot; Spasi = picu gangguan / reset</div></div>
+
+    <!-- KANAN -->
+    <div class="right">
+      <div class="panel" id="st-panel"><div class="panel-title">STATUS HIPPS</div>
+        <div class="read-grid">
+          <div class="big"><div class="k">TEKANAN HILIR</div><div class="v c" id="r-pd">40,0</div><div class="u">bar</div><div class="s">MAWP 60 &middot; batas pecah 90</div></div>
+          <div class="big"><div class="k">TEKANAN HULU</div><div class="v" id="r-pu">150</div><div class="u">bar</div><div class="s" id="r-pcv">PCV 12 %</div></div>
+        </div>
+        <div class="kv" style="margin-top:6px"><span style="color:#5cf0ff">PT-101A</span><b id="r-a">--</b></div>
+        <div class="kv"><span style="color:#ff7be5">PT-101B</span><b id="r-b">--</b></div>
+        <div class="kv"><span style="color:#ffd27f">PT-101C</span><b id="r-c">--</b></div>
+        <div class="kv"><span>Voting (perintah trip)</span><b id="r-vote">--</b></div>
+        <div class="kv"><span>XV-101A / XV-101B</span><b id="r-xv">--</b></div>
+        <div class="kv"><span>Alarm diskrepansi sensor</span><b id="r-disc">--</b></div>
+        <div class="kv"><span>Respons SIF (setpoint &rarr; tertutup)</span><b id="r-resp">--</b></div>
+        <div class="kv"><span>Tekanan puncak / margin ke MAWP</span><b id="r-peak">--</b></div>
+        <div class="kv"><span>Waktu sisa sebelum MAWP</span><b id="r-pst">--</b></div>
+        <div class="kv"><span>PSV / flare</span><b id="r-psv">tertutup</b></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">DIAGRAM VOTING</div>
+        <div id="vote-svg"></div>
+        <table class="mini" style="margin-top:6px"><thead id="tt-head"></thead><tbody id="tt-body"></tbody></table>
+      </div>
+
+      <div class="panel"><div class="panel-title">TREN TEKANAN HILIR (60 detik)</div><canvas class="chart" id="trend-canvas" width="340" height="150"></canvas></div>
+
+      <div class="panel"><div class="panel-title">PERHITUNGAN SIL (IEC 61508 / 61511)</div>
+        <table class="mini"><thead><tr><th>Subsistem</th><th>PFDavg</th><th>HFT</th><th>Maks SIL</th></tr></thead><tbody id="sil-body"></tbody></table>
+        <div class="kv" style="margin-top:6px"><span>PFDavg SIF total / RRF</span><b id="s-pfd">--</b></div>
+        <div class="kv"><span>SIL tercapai (target SIL 3)</span><b id="s-sil">--</b></div>
+        <div class="kv"><span>Trip palsu (per tahun) / MTTFS</span><b id="s-str">--</b></div>
+        <div class="note" id="s-note"></div>
+      </div>
+
+      <div class="panel"><div class="panel-title">PERBANDINGAN ARSITEKTUR SENSOR</div>
+        <table class="mini"><thead><tr><th>Voting</th><th>PFD sensor</th><th>Trip palsu/th</th><th>HFT</th></tr></thead><tbody id="cmp-body"></tbody></table>
+        <div class="note">2oo3 = keselamatan setara 1oo2 (PFD rendah) <b>dan</b> ketersediaan setara 2oo2 (trip palsu rendah). Angka ilustratif (λ dan β tipikal).</div>
+      </div>
+
+      <div class="panel"><div class="panel-title">CARA KERJA HIPPS &amp; SIL</div><div id="info-box" class="info-box"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="twin_core.js"></script>
+<script src="twin_hipps.js"></script>
+<script>window.addEventListener('load', function () { HP.start(); });</script>
+</body>
+</html>

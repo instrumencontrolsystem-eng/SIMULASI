@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Twin Instrument — ICS Cademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="twin_common.css">
+<style>
+  html,body{overflow:auto}
+  .wrap{max-width:1080px;margin:0 auto;padding:34px 20px 60px}
+  h1{font:900 26px var(--f-h);letter-spacing:.1em;color:var(--cy);margin:0 0 6px;text-shadow:0 0 14px rgba(0,229,255,.45)}
+  .lead{color:var(--mut);font-size:15px;margin:0 0 26px;max-width:760px;line-height:1.5}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px}
+  a.tile{display:block;text-decoration:none;color:var(--tx);background:var(--panel);border:1px solid var(--panel-b);border-radius:6px;padding:18px 18px 16px;transition:.18s}
+  a.tile:hover{border-color:var(--cy);box-shadow:0 0 22px rgba(0,229,255,.25);transform:translateY(-2px)}
+  a.tile h2{font:700 15px var(--f-h);letter-spacing:.07em;color:#fff;margin:0 0 8px}
+  a.tile .k{font:600 11px var(--f-h);letter-spacing:.12em;color:var(--amber);margin-bottom:6px}
+  a.tile p{margin:6px 0;font-size:14px;line-height:1.5;color:var(--tx)}
+  a.tile ul{margin:6px 0 0 18px;padding:0;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .foot{margin-top:28px;font-size:12.5px;color:var(--mut);line-height:1.6;border-top:1px solid rgba(0,229,255,.15);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>3D TWIN &middot; INSTRUMENT PROSES &amp; KESELAMATAN</h1>
+  <p class="lead">Simulasi interaktif ICS Cademy: pilih instrument, picu kegagalan, dan lihat sendiri akibatnya. Semua berjalan di browser (Three.js), tanpa server.</p>
+  <div class="grid">
+    <a class="tile" href="HYGIENIC_CIP_3D_TWIN.html">
+      <div class="k">FOOD &amp; FARMASI</div>
+      <h2>INSTRUMENT HYGIENIC &amp; PROSES CIP</h2>
+      <p>Ganti PT / TT / FT / LT antara hygienic, semi, dan non-hygienic. Jalankan CIP (pra-bilas, kaustik, asam, sanitasi), lalu produksi Batch B.</p>
+      <ul><li>Sisa kotoran per titik (dead-leg, ulir, celah gasket)</li><li>Swab ATP, konduktivitas bilas, mikroba &amp; lintas-kontaminasi</li><li>Program CIP: suhu, konsentrasi, kecepatan, waktu</li></ul>
+    </a>
+    <a class="tile" href="HAZARDOUS_AREA_3D_TWIN.html">
+      <div class="k">AREA BERBAHAYA &middot; Ex / ATEX</div>
+      <h2>INSTRUMENT HAZARDOUS AREA</h2>
+      <p>Transmitter di Zona 1 dekat flange bocor. Pilih instrument biasa, Ex ec, Ex db IIB/IIC, atau Ex ia + barrier, lalu gagalkan.</p>
+      <ul><li>Ex-rated yang sesuai: gagal dengan <b>aman</b></li><li>Non-Ex / tidak sesuai: flash fire, jet fire, BLEVE, domino</li><li>Awan gas, angin, LEL/UEL, MIE, MESG, detektor &amp; ESD</li></ul>
+    </a>
+    <a class="tile" href="SIL_HIPPS_3D_TWIN.html">
+      <div class="k">SAFETY &middot; IEC 61508 / 61511</div>
+      <h2>INSTRUMENT SIL &amp; HIPPS 2oo3</h2>
+      <p>3 transmitter voting 2oo3, logic solver SIL 3, 2 valve seri. Picu tekanan berlebih dan suntikkan kegagalan sensor / valve.</p>
+      <ul><li>Voting 1oo1 / 1oo2 / 2oo2 / 2oo3 dan trip palsu</li><li>PFDavg, HFT, SFF, SIL tercapai, waktu respons vs waktu aman</li><li>Pipa hilir 60 bar: aman atau pecah</li></ul>
+    </a>
+    <a class="tile" href="LEVEL_3D_TWIN.html">
+      <div class="k">SUDAH ADA</div>
+      <h2>CARA KERJA INSTRUMENT LEVEL</h2>
+      <p>24 metode pengukuran level pada satu rig.</p>
+      <ul><li>Memerlukan file pendukung (levellab.css, plantkit3d.js, levelkit.js, m_*.js, specs.js, icsnotice.js) yang harus berada di folder yang sama.</li></ul>
+    </a>
+  </div>
+  <div class="foot">Catatan: semua angka (laju kegagalan, batas terima, energi percikan, laju kenaikan tekanan) adalah <b>nilai ilustrasi untuk pembelajaran</b>, bukan untuk desain, validasi CIP, klasifikasi area, atau perhitungan SIL nyata. Desain nyata harus mengikuti standar (3-A, EHEDG, ASME BPE, IEC 60079, IEC 61508/61511) dan data produsen.</div>
+</div>
+</body>
+</html>
