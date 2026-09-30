@@ -4,6 +4,13 @@ var TW = (function () {
   'use strict';
   var T = THREE;
   var TW = {};
+  /* Manajemen warna: semua warna hex ditulis dalam sRGB lalu dikonversi ke linear (render output sRGB),
+     sehingga pencahayaan fisik terlihat natural dan warna tetap sesuai yang ditulis. */
+  (function () {
+    var setHex = T.Color.prototype.setHex;
+    T.Color.prototype.setHex = function (hex) { setHex.call(this, hex); return this.convertSRGBToLinear(); };
+  })();
+  TW.raw = function (hex) { return new T.Color().setRGB(((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255); };
   var host, renderer, scene, camera, controls, clock = new T.Clock(), time = 0;
   var updaters = [], labels = [], shellMats = [], pickables = [], keyMap = {};
   var xrayOn = true, xrayOpacity = 0.16, labelsOn = true, fly = null;
@@ -28,17 +35,18 @@ var TW = (function () {
     renderer = new T.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputEncoding = T.LinearEncoding;   // r128: warna hex diperlakukan linear -> pakai output linear agar warna sesuai yang ditulis
+    renderer.outputEncoding = T.sRGBEncoding;
     renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.physicallyCorrectLights = false;
     renderer.toneMappingExposure = o.exposure || 1.0;
     renderer.shadowMap.enabled = o.shadows !== false;
     renderer.shadowMap.type = T.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
 
     scene = new T.Scene();
-    scene.background = new T.Color(o.bg || 0x07111d);
+    scene.background = TW.raw(o.bg || 0x07111d);
     if (o.fog) scene.fog = new T.Fog(o.fog.color, o.fog.near, o.fog.far);
-    camera = new T.PerspectiveCamera(o.fov || 45, window.innerWidth / window.innerHeight, 0.05, 500);
+    camera = new T.PerspectiveCamera(o.fov || 45, window.innerWidth / window.innerHeight, 0.05, 900);
     camera.position.fromArray(o.cam || [6, 4, 8]);
     controls = new T.OrbitControls(camera, renderer.domElement);
     controls.target.fromArray(o.target || [0, 1, 0]);
@@ -48,20 +56,23 @@ var TW = (function () {
     controls.update();
     controls.addEventListener('start', function () { fly = null; });
 
-    makeEnv(o.envTop, o.envBottom);
-    var hemi = new T.HemisphereLight(o.hemiSky || 0xbfd8ff, o.hemiGround || 0x27303c, o.hemi || 0.35);
+    if (o.sky) TW.sky(o.sky); else makeEnv(o.envTop, o.envBottom);
+    if (o.room) makeRoomEnv(o.room);
+    var hemi = new T.HemisphereLight(o.hemiSky || 0xbfd8ff, o.hemiGround || 0x5a5248, o.hemi == null ? 0.55 : o.hemi);
     scene.add(hemi);
-    var sun = new T.DirectionalLight(0xffffff, o.sun || 1.5);
-    var ss = o.shadowSize || 12;
-    sun.position.set(ss * 0.6, ss * 1.1, ss * 0.7);
+    var sun = new T.DirectionalLight(o.sunColor || 0xfff4e2, o.sun == null ? 2.4 : o.sun);
+    var ss = o.shadowSize || 12, sd = o.sunDir || [0.55, 1.0, 0.6];
+    var sdv = new T.Vector3().fromArray(sd).normalize();
+    sun.position.copy(sdv).multiplyScalar(ss * 2.2).add(new T.Vector3().fromArray(o.shadowCenter || [0, 0, 0]));
+    sun.target.position.fromArray(o.shadowCenter || [0, 0, 0]);
     sun.castShadow = renderer.shadowMap.enabled;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(o.shadowMap || 4096, o.shadowMap || 4096);
     sun.shadow.camera.left = -ss; sun.shadow.camera.right = ss; sun.shadow.camera.top = ss; sun.shadow.camera.bottom = -ss;
-    sun.shadow.camera.near = 1; sun.shadow.camera.far = ss * 4;
-    sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.03;
+    sun.shadow.camera.near = 0.5; sun.shadow.camera.far = ss * 5;
+    sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.025; sun.shadow.radius = 2;
     scene.add(sun); scene.add(sun.target);
-    TW.sun = sun; TW.hemi = hemi;
-    var fill = new T.DirectionalLight(0x9cc8ff, 0.45); fill.position.set(-ss, ss * .5, -ss * .4); scene.add(fill);
+    TW.sun = sun; TW.hemi = hemi; TW.sunDir = sdv;
+    var fill = new T.DirectionalLight(o.fillColor || 0x9cc8ff, o.fill == null ? 0.35 : o.fill); fill.position.set(-ss, ss * .5, -ss * .4); scene.add(fill); TW.fillLight = fill;
 
     window.addEventListener('resize', function () {
       camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
@@ -97,6 +108,44 @@ var TW = (function () {
     pm.dispose();
   }
 
+  /* lingkungan pantul untuk ruangan (pabrik food/farmasi): dinding putih, lampu panel di plafon */
+  function makeRoomEnv(o) {
+    var pm = new T.PMREMGenerator(renderer), es = new T.Scene();
+    var wall = new T.MeshBasicMaterial({ color: new T.Color().setRGB(0.78, 0.8, 0.8), side: T.BackSide });
+    var room = new T.Mesh(new T.BoxGeometry(36, 10, 22), wall); room.position.y = 3; es.add(room);
+    var floor = new T.Mesh(new T.PlaneGeometry(36, 22), new T.MeshBasicMaterial({ color: new T.Color().setRGB(0.42, 0.46, 0.46), side: T.DoubleSide }));
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -1.8; es.add(floor);
+    var dark = new T.MeshBasicMaterial({ color: new T.Color().setRGB(0.12, 0.14, 0.16), side: T.DoubleSide });
+    [[-9, 0.4, -10.9, 0], [6, 0.4, -10.9, 0], [17.9, 0, 3, Math.PI / 2]].forEach(function (q) { var m = new T.Mesh(new T.PlaneGeometry(6, 1.4), dark); m.position.set(q[0], q[1], q[2]); m.rotation.y = q[3]; es.add(m); });
+    var lamp = new T.MeshBasicMaterial({ color: new T.Color().setRGB(9, 9, 8.6), side: T.DoubleSide });
+    for (var i = -3; i <= 3; i++) for (var j = -1; j <= 1; j++) { var l = new T.Mesh(new T.PlaneGeometry(1.2, 2.4), lamp); l.rotation.x = Math.PI / 2; l.position.set(i * 5, 7.9, j * 6); es.add(l); }
+    scene.environment = pm.fromScene(es, 0.02, 0.1, 100).texture; pm.dispose();
+  }
+  /* langit: gradasi + matahari + awan (shader), juga dipakai sebagai env-map pantulan */
+  var SKY_VS = 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }';
+  var SKY_FS = [
+    'uniform vec3 top; uniform vec3 hor; uniform vec3 gnd; uniform vec3 sunDir; uniform vec3 sunCol; uniform float cloud; uniform float toLin; varying vec3 vP;',
+    'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }',
+    'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(hash(i), hash(i+vec2(1.0,0.0)), f.x), mix(hash(i+vec2(0.0,1.0)), hash(i+vec2(1.0,1.0)), f.x), f.y); }',
+    'float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.03; a *= 0.5; } return v; }',
+    'void main(){ vec3 d = normalize(vP); float h = d.y;',
+    ' vec3 col = h > 0.0 ? mix(hor, top, pow(clamp(h, 0.0, 1.0), 0.5)) : mix(hor, gnd, pow(clamp(-h * 3.0, 0.0, 1.0), 0.6));',
+    ' if (h > 0.0 && cloud > 0.0) { vec2 uv = d.xz / (h + 0.15) * 1.4; float c = fbm(uv + vec2(3.1, 1.7)); c = smoothstep(0.62 - cloud * 0.22, 0.9, c) * smoothstep(0.0, 0.18, h); col = mix(col, vec3(0.96, 0.97, 0.99), c * 0.8); }',
+    ' float s = max(dot(d, normalize(sunDir)), 0.0); col += sunCol * (pow(s, 1200.0) * 8.0 + pow(s, 30.0) * 0.16 + pow(s, 4.0) * 0.05);',
+    ' if (toLin > 0.5) { col = pow(col, vec3(2.2)) * (1.0 + pow(s, 1200.0) * 20.0); gl_FragColor = linearToOutputTexel(vec4(col, 1.0)); } else gl_FragColor = vec4(col, 1.0); }'].join('\n');
+  function skyMat(o, lin) {
+    var c = function (h) { var k = new T.Color().setRGB(((h >> 16) & 255) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255); return new T.Vector3(k.r, k.g, k.b); };
+    return new T.ShaderMaterial({ uniforms: { top: { value: c(o.top || 0x3f7fcf) }, hor: { value: c(o.hor || 0xcfdde8) }, gnd: { value: c(o.gnd || 0x6c6860) }, sunDir: { value: new T.Vector3().fromArray(o.sunDir || [0.55, 1.0, 0.6]).normalize() }, sunCol: { value: new T.Vector3(1, 0.95, 0.86) }, cloud: { value: o.cloud == null ? 0.5 : o.cloud }, toLin: { value: lin ? 1 : 0 } },
+      vertexShader: SKY_VS, fragmentShader: SKY_FS, side: T.BackSide, depthWrite: false, depthTest: false, fog: false });
+  }
+  TW.sky = function (o) {
+    var dome = new T.Mesh(new T.SphereGeometry(800, 48, 24), skyMat(o, false)); dome.renderOrder = -100; dome.frustumCulled = false; scene.add(dome);
+    updaters.push(function () { dome.position.copy(camera.position); });
+    var pm = new T.PMREMGenerator(renderer), es = new T.Scene(); es.add(new T.Mesh(new T.SphereGeometry(40, 48, 24), skyMat(o, true)));
+    scene.environment = pm.fromScene(es, 0.02).texture; pm.dispose();
+    TW.skyDome = dome; return dome;
+  };
+
   /* -------------------------------------------------------------- materials */
   var M = TW.M = {};
   M.std = function (color, metal, rough, extra) {
@@ -108,6 +157,7 @@ var TW = (function () {
     else { m.transparent = false; m.opacity = 1; m.depthWrite = true; m.side = m.userData.double ? T.DoubleSide : T.FrontSide; }
   }
   TW.shellDouble = function (m) { m.userData.double = true; applyShell(m); return m; };
+  TW.shellize = function (m) { if (!m.userData.shell) { m.userData.shell = true; shellMats.push(m); } applyShell(m); return m; };
   /* material "dinding" — ikut X-ray */
   M.shell = function (color, metal, rough, extra) {
     var m = M.std(color, metal == null ? 0.92 : metal, rough == null ? 0.28 : rough, extra);
@@ -197,12 +247,12 @@ var TW = (function () {
   };
   TW.canvasTex = function (w, h, fn) {
     var c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h);
-    var t = new T.CanvasTexture(c); t.anisotropy = 4; return t;
+    var t = new T.CanvasTexture(c); t.anisotropy = 8; t.encoding = T.sRGBEncoding; return t;
   };
   TW.plate = function (w, h, fn, px) {
     px = px || 256;
     var tex = TW.canvasTex(Math.round(px * w / Math.max(w, h)), Math.round(px * h / Math.max(w, h)), fn);
-    return new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map: tex, transparent: true }));
+    return new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false }));
   };
   TW.ground = function (size, color, gridColor) {
     color = color || '#141d27';
@@ -446,7 +496,7 @@ var TW = (function () {
     ring.rotation.x = -Math.PI / 2; ring.position.set(pos[0], Math.max(0.06, pos[1] * 0.3), pos[2]); ring.scale.setScalar(0.5); scene.add(ring);
     fx.shocks.push({ m: ring, t: 0, R: R * 7 });
     fx.flashK = Math.min(60, R * 14);
-    var fl = TW.$('flash'); if (fl) { fl.style.transition = 'none'; fl.style.opacity = Math.min(0.85, 0.2 + R * 0.1); setTimeout(function () { fl.style.transition = 'opacity 1.2s'; fl.style.opacity = 0; }, 40); }
+    var fl = TW.$('flash'); if (fl) { fl.style.transition = 'none'; fl.style.opacity = Math.min(0.5, 0.15 + R * 0.05); setTimeout(function () { fl.style.transition = 'opacity 0.9s'; fl.style.opacity = 0; }, 40); }
     fx.flashLight.position.set(pos[0], pos[1] + 1, pos[2]);
     TW.shake(Math.min(0.5, R * 0.05 + 0.05), 1.6 + R * 0.1);
     if (o.debris !== false) fx.debrisBurst(pos, Math.min(70, Math.round(R * 14)), R);
@@ -503,6 +553,29 @@ var TW = (function () {
     if (k <= 0.01) { mat.emissive.setRGB(0, 0, 0); mat.emissiveIntensity = 1; return; }
     hc.setRGB(1, 0.18 + 0.55 * k * k, 0.02 + 0.3 * k * k * k);
     mat.emissive.copy(hc); mat.emissiveIntensity = 0.15 + k * 1.3;
+  };
+
+  /* ------------------------------------------------ ICS Cademy: logo, watermark & peringatan */
+  /* Halaman memuat icsnotice.js (sama seperti 3D Twin Level). Bila file itu tidak ada di folder,
+     peringatan bawaan di bawah ini yang ditampilkan agar tidak pernah dobel. */
+  TW.ics = function (o) {
+    o = o || {};
+    var hl = document.querySelector('.hdr-left');
+    if (hl && !hl.querySelector('.ics-logo')) {
+      var lg = document.createElement('div'); lg.className = 'ics-logo'; lg.innerHTML = '<b>ICS</b><small>CADEMY</small>'; hl.insertBefore(lg, hl.firstChild);
+    }
+    if (!document.querySelector('.ics-wm')) { var wm = document.createElement('div'); wm.className = 'ics-wm'; wm.innerHTML = '&copy; ICS Cademy &middot; 3D Twin &middot; materi lanjutan'; document.body.appendChild(wm); }
+    if (!window.ICS_NOTICE_MISSING) return;
+    var ov = document.createElement('div'); ov.className = 'ics-notice';
+    ov.innerHTML = '<div class="ics-box"><div class="ics-top"><div class="ics-logo big"><b>ICS</b><small>CADEMY</small></div><div><div class="ics-warn">&#9888; PERINGATAN</div><div class="ics-title">' + (o.title || '3D TWIN') + '</div><div class="ics-series">Materi lanjutan seri 3D Twin ICS Cademy</div></div></div>' +
+      '<ul>' +
+      '<li><b>Lanjutan dari:</b> 3D Twin Cara Kerja Instrument Level. Pelajari seri dasar terlebih dahulu.</li>' +
+      '<li><b>Untuk pembelajaran.</b> Angka dan model di simulasi ini adalah ilustrasi, <b>bukan</b> untuk desain, validasi, klasifikasi area, atau perhitungan SIL nyata. Ikuti standar dan data produsen.</li>' +
+      (o.extra ? '<li>' + o.extra + '</li>' : '') +
+      '<li><b>Hak cipta ICS Cademy.</b> Jangan menyebarluaskan atau memperjualbelikan materi ini tanpa izin.</li>' +
+      '</ul><button class="btn go" id="ics-ok">SAYA MENGERTI &mdash; MULAI SIMULASI</button></div>';
+    document.body.appendChild(ov);
+    TW.$('ics-ok').onclick = function () { ov.classList.add('hide'); setTimeout(function () { ov.remove(); }, 400); };
   };
 
   /* ----------------------------------------------------------------- loop */

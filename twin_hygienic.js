@@ -15,12 +15,20 @@ var HY = (function () {
   var idc = function (n, d) { return TW.fmt(n, d).replace('.', ','); };
 
   /* material */
+  var MK = SK.mat;
   var mSteel = M.shell(0xc9d1d8, 0.95, 0.25);
-  var mPipe = M.shell(0xcdd5db, 0.95, 0.22);
-  var mSteelS = M.std(0xc9d1d8, 0.95, 0.25), mPolS = M.std(0xf0f4f7, 1.0, 0.07), mClamp = M.std(0xaeb8c1, 0.9, 0.3);
-  var mBlue = M.std(0x1e6fb5, 0.35, 0.42), mGlass = M.std(0x0b2c3f, 0.2, 0.15, { emissive: 0x0a4c66, emissiveIntensity: 0.9 });
-  var mDark = M.std(0x15181a, 0.1, 0.7), mBolt = M.std(0x8b939a, 0.9, 0.4), mFloor = M.std(0x24303c, 0.2, 0.7);
+  var mPipe = M.shell(0xd7dde2, 0.95, 0.2);
+  var mSteelS = MK.ss(), mPolS = MK.ssPol(), mClamp = MK.ss();
+  var mBlue = MK.paint(0x1f5f9a, 0.42, 0.35), mGlass = MK.glass();
+  var mDark = MK.dark(), mBolt = MK.steel();
   var mTankShell = TW.shellDouble(M.shell(0xd3dae0, 0.95, 0.3));
+  var HEADSTYLE = 'H';
+  var lcdMat = null;
+  function getLcdMat() {
+    if (lcdMat) return lcdMat;
+    var t = TW.canvasTex(128, 64, function (g, w, h) { g.fillStyle = '#9fc4a8'; g.fillRect(0, 0, w, h); g.fillStyle = '#0f1a12'; g.font = 'bold 30px monospace'; g.textAlign = 'center'; g.fillText('1.52', w / 2, 40); g.font = '12px monospace'; g.fillText('bar', w / 2, 58); });
+    lcdMat = new T.MeshBasicMaterial({ map: t, toneMapped: false }); return lcdMat;
+  }
 
   /* ------------------------------------------------------ helper geometri */
   function cylX(r, h, mat, seg) { var m = TW.cyl(r, r, h, mat, seg || 28); m.rotation.z = Math.PI / 2; return m; }
@@ -62,20 +70,29 @@ var HY = (function () {
     put(g, cylZ(r * 1.3, 0.02, mClamp, 32), 0, 0, z + 0.012);
     put(g, TW.box(0.03, 0.02, 0.03, mClamp), 0, r * 1.45, z + 0.012);
   }
-  function headV(g, y, neck) {
-    neck = neck || 0.09;
-    put(g, TW.cyl(0.022, 0.022, neck, mSteelS, 24), 0, y + neck / 2, 0);
-    put(g, TW.cyl(0.04, 0.04, 0.09, mBlue, 28), 0, y + neck + 0.045, 0);
-    put(g, TW.cyl(0.032, 0.032, 0.014, mGlass, 24), 0, y + neck + 0.097, 0);
-    put(g, cylX(0.011, 0.05, mDark, 12), 0.05, y + neck + 0.045, 0);
+  /* kepala transmitter: stainless higienis (H/M) atau aluminium bercat industri (N); dibangun tegak (+Y) */
+  function headGroup(neck) {
+    var h = new T.Group(), ind = HEADSTYLE === 'N';
+    h.add(TW.at(TW.cyl(0.018, 0.02, neck, mPolS, 20), 0, neck / 2, 0));
+    if (!ind) {
+      h.add(TW.at(TW.cyl(0.043, 0.04, 0.075, mPolS, 32), 0, neck + 0.0375, 0));
+      h.add(TW.at(TW.cyl(0.046, 0.046, 0.016, mPolS, 32), 0, neck + 0.083, 0));
+      var gl = TW.at(TW.cyl(0.036, 0.036, 0.004, mGlass, 28), 0, neck + 0.092, 0); h.add(gl);
+      var lcd = new T.Mesh(new T.CircleGeometry(0.03, 24), getLcdMat()); lcd.rotation.x = -Math.PI / 2; lcd.position.set(0, neck + 0.0915, 0); h.add(lcd);
+      var m12 = TW.cyl(0.009, 0.009, 0.035, mPolS, 12); m12.rotation.z = Math.PI / 2; m12.position.set(0.058, neck + 0.03, 0); h.add(m12);
+      var nut = TW.cyl(0.012, 0.012, 0.014, mSteelS, 6); nut.rotation.z = Math.PI / 2; nut.position.set(0.079, neck + 0.03, 0); h.add(nut);
+      var cab = TW.rod([0.086, neck + 0.03, 0], [0.13, neck + 0.02, 0], 0.006, MK.paint(0x6b6f73, 0.6, 0.1), 8); h.add(cab);
+    } else {
+      var body = TW.cyl(0.045, 0.045, 0.11, mBlue, 28); body.rotation.z = Math.PI / 2; body.position.set(0, neck + 0.05, 0); h.add(body);
+      [-1, 1].forEach(function (sd) { var c = TW.cyl(0.05, 0.05, 0.022, mBlue, 28); c.rotation.z = Math.PI / 2; c.position.set(sd * 0.066, neck + 0.05, 0); h.add(c); });
+      var w = TW.cyl(0.034, 0.034, 0.003, mGlass, 24); w.rotation.z = Math.PI / 2; w.position.set(0.078, neck + 0.05, 0); h.add(w);
+      var l2 = new T.Mesh(new T.CircleGeometry(0.028, 24), getLcdMat()); l2.rotation.y = Math.PI / 2; l2.position.set(0.0775, neck + 0.05, 0); h.add(l2);
+      var gd = TW.cyl(0.013, 0.013, 0.035, MK.paint(0x2a2a2a, 0.5, 0.2), 6); gd.position.set(-0.03, neck + 0.0, 0.035); gd.rotation.x = Math.PI / 2; h.add(gd);
+    }
+    return h;
   }
-  function headZ(g, z, len) {
-    len = len || 0.16;
-    put(g, cylZ(0.03, len, mSteelS, 24), 0, 0, z + len / 2);
-    put(g, cylZ(0.045, 0.09, mBlue, 28), 0, 0, z + len + 0.045);
-    put(g, cylZ(0.033, 0.014, mGlass, 24), 0, 0, z + len + 0.097);
-    put(g, TW.cyl(0.011, 0.011, 0.05, mDark, 12), 0, 0.05, z + len + 0.045);
-  }
+  function headV(g, y, neck) { var h = headGroup(neck || 0.09); h.position.y = y; g.add(h); }
+  function headZ(g, z, len) { var h = headGroup(len || 0.16); h.rotation.x = Math.PI / 2; h.position.z = z; g.add(h); }
   function hexV(g, y, r) { var m = TW.cyl(r, r, 0.02, mSteelS, 6); return put(g, m, 0, y, 0); }
 
   /* ---------------------------------------------- pembangun tiap instrumen */
@@ -137,8 +154,11 @@ var HY = (function () {
   function buildFT(v, g, ctx) {
     var m, i;
     function coils() {
-      put(g, TW.box(0.22, 0.13, 0.05, mBlue), 0, 0, 0.098); put(g, TW.box(0.22, 0.13, 0.05, mBlue), 0, 0, -0.098);
-      put(g, TW.cyl(0.048, 0.048, 0.11, mBlue, 28), 0, RO + 0.055, 0); put(g, TW.cyl(0.036, 0.036, 0.014, mGlass, 24), 0, RO + 0.117, 0);
+      var cm = HEADSTYLE === 'N' ? mBlue : mPolS;
+      put(g, TW.box(0.22, 0.13, 0.05, cm), 0, 0, 0.098); put(g, TW.box(0.22, 0.13, 0.05, cm), 0, 0, -0.098);
+      put(g, TW.cyl(0.02, 0.024, 0.05, mPolS, 16), 0, RO + 0.02, 0);
+      put(g, TW.cyl(0.05, 0.05, 0.1, cm, 32), 0, RO + 0.09, 0); put(g, TW.cyl(0.053, 0.053, 0.016, cm, 32), 0, RO + 0.148, 0); put(g, TW.cyl(0.04, 0.04, 0.004, mGlass, 24), 0, RO + 0.158, 0);
+      var fl = new T.Mesh(new T.CircleGeometry(0.034, 24), getLcdMat()); fl.rotation.x = -Math.PI / 2; fl.position.set(0, RO + 0.157, 0); g.add(fl);
     }
     if (v === 0) {                                   // magmeter PFA tri-clamp
       put(g, cylX(0.0575, 0.36, mSteel, 32), 0, 0, 0);
@@ -162,7 +182,7 @@ var HY = (function () {
       var rc = fillCyl(0.043, 0.075, 'z'); put(g, rc, 0, 0.06, 0);
       var rot = new T.Group(); rot.position.set(0, 0.06, 0); g.add(rot); HY._rotors.push(rot);
       for (i = 0; i < 4; i++) { var bl = TW.box(0.07, 0.008, 0.06, mPolS); bl.rotation.z = i * Math.PI / 2; rot.add(bl); }
-      put(g, TW.cyl(0.02, 0.02, 0.06, mSteelS, 20), 0, 0.14, 0); put(g, TW.cyl(0.04, 0.04, 0.09, mBlue, 28), 0, 0.2, 0);
+      put(g, TW.cyl(0.02, 0.02, 0.06, mSteelS, 20), 0, 0.14, 0); headV(g, 0.16, 0.03);
       addZone(ctx, 'Rumah rotor + bearing turbin', 0.04, 900, 1.5, [rc], { main: true });
       addZone(ctx, 'Kantong O-ring & gasket flensa', 0.05, 1200, 1.3, [a2, b2]);
     }
@@ -243,6 +263,7 @@ var HY = (function () {
     HY._rotors.length = 0;
     var g = new T.Group(); g.position.fromArray(slot.mount); plant.root.add(g);
     var ctx = { slot: slot.id, zones: [] };
+    HEADSTYLE = slot.variants[vi].cls;
     slot.build(vi, g, ctx);
     g.updateMatrixWorld(true);
     ctx.zones.forEach(function (z) { addDots(z, g); });
@@ -261,45 +282,88 @@ var HY = (function () {
   }
 
   /* --------------------------------------------------------------- scene */
+  var HALL = { X0: -7.5, X1: 10.5, Z0: -4.5, Z1: 5.5, H: 6.0 };
   function buildPlant() {
     var root = plant.root = new T.Group(); TW.add(root);
-    TW.ground(60, '#111a23', 'rgba(0,229,255,.10)');
-    var wall = new T.Mesh(new T.PlaneGeometry(60, 9), M.std(0x15212c, 0.1, 0.9, { envMapIntensity: 0.15 })); wall.position.set(0, 4.5, -3.6); wall.receiveShadow = true; TW.add(wall);
-    // saluran drain
-    var dr = new T.Mesh(new T.PlaneGeometry(14, 0.35), M.std(0x0b1118, 0.6, 0.4)); dr.rotation.x = -Math.PI / 2; dr.position.set(2, 0.012, 1.7); TW.add(dr);
-
-    /* TANGKI TK-101 */
+    var B = new SK.Batch(), ss = MK.ss(), sp = MK.ssPol(), X0 = HALL.X0, X1 = HALL.X1, Z0 = HALL.Z0, Z1 = HALL.Z1, H = HALL.H, W = X1 - X0, D = Z1 - Z0;
+    /* ---- ruang produksi: lantai epoxy, dinding panel, plafon, drain */
+    var og = new T.Mesh(new T.PlaneGeometry(160, 160), new T.MeshStandardMaterial({ color: 0x2b3137, roughness: 0.95 })); og.rotation.x = -Math.PI / 2; og.position.y = -0.03; og.receiveShadow = true; TW.add(og);
+    var epox = new T.MeshStandardMaterial({ color: 0xffffff, map: SK.tex.epoxy('#aeb8b5'), roughness: 0.26, metalness: 0.0, envMapIntensity: 0.9 });
+    var fg = new T.PlaneGeometry(W, D); SK.scaleUV(fg, W / 4, D / 4); B.geo(epox, fg, SK.M4((X0 + X1) / 2, 0, (Z0 + Z1) / 2, -Math.PI / 2));
+    var WB = new SK.Batch(), wallM = new T.MeshStandardMaterial({ map: SK.tex.wallPanel(), roughness: 0.45, metalness: 0.05, envMapIntensity: 0.5 });
+    function wall(cx, cz, len, ry) { var g = new T.PlaneGeometry(len, H); SK.scaleUV(g, len / 2.4, 1); WB.geo(wallM, g, SK.M4(cx, H / 2, cz, 0, ry, 0)); var k = new T.PlaneGeometry(len, 0.3); SK.scaleUV(k, len, 1); WB.geo(ss, k, SK.M4(cx + Math.sin(ry) * 0.012, 0.15, cz + Math.cos(ry) * 0.012, 0, ry, 0)); var cv = new T.PlaneGeometry(len, 0.13); WB.geo(epox, cv, SK.M4(cx + Math.sin(ry) * 0.05, 0.045, cz + Math.cos(ry) * 0.05, 0, ry, 0).multiply(SK.M4(0, 0, 0, -Math.PI / 4))); }
+    wall((X0 + X1) / 2, Z0, W, 0); wall((X0 + X1) / 2, Z1, W, Math.PI); wall(X0, (Z0 + Z1) / 2, D, Math.PI / 2); wall(X1, (Z0 + Z1) / 2, D, -Math.PI / 2);
+    var ceil = new T.PlaneGeometry(W, D); SK.scaleUV(ceil, W / 2.4, D / 2.4); WB.geo(new T.MeshStandardMaterial({ map: SK.tex.wallPanel(), color: 0xf4f6f6, roughness: 0.6 }), ceil, SK.M4((X0 + X1) / 2, H, (Z0 + Z1) / 2, Math.PI / 2));
+    for (var lx = X0 + 2.2; lx < X1 - 1; lx += 3.2) for (var lz = Z0 + 1.6; lz < Z1 - 0.8; lz += 3.0) { WB.box(MK.lamp(0xfdf8ec), 0.6, 0.02, 1.2, lx, H - 0.02, lz); WB.box(sp, 0.64, 0.025, 1.24, lx, H - 0.005, lz); }
+    /* jendela koridor pengunjung (dinding belakang) */
+    var wx0 = -2.8, wx1 = 6.8, wy0 = 1.25, wy1 = 2.45;
+    WB.box(new T.MeshStandardMaterial({ color: 0x2b3642, roughness: 0.9 }), wx1 - wx0, wy1 - wy0, 0.01, (wx0 + wx1) / 2, (wy0 + wy1) / 2, Z0 + 0.005);
+    WB.box(MK.glass(), wx1 - wx0, wy1 - wy0, 0.01, (wx0 + wx1) / 2, (wy0 + wy1) / 2, Z0 + 0.03);
+    for (var fx = wx0; fx <= wx1 + 0.01; fx += (wx1 - wx0) / 6) WB.box(sp, 0.05, wy1 - wy0 + 0.05, 0.05, fx, (wy0 + wy1) / 2, Z0 + 0.03);
+    [wy0, wy1].forEach(function (y) { WB.box(sp, wx1 - wx0 + 0.05, 0.05, 0.06, (wx0 + wx1) / 2, y, Z0 + 0.03); });
+    /* pintu higienis */
+    [[X1 - 0.02, 2.8, -Math.PI / 2, 2], [X0 + 0.02, -2.0, Math.PI / 2, 1]].forEach(function (d) {
+      var n = d[3], wd = 0.9;
+      for (var k = 0; k < n; k++) { var off = (k - (n - 1) / 2) * wd; WB.at(SK.M4(d[0], 0, d[1] + off, 0, d[2], 0), function (b) { b.box(MK.paint(0x9aa4aa, 0.35, 0.3), wd - 0.02, 2.2, 0.05, 0, 1.1, 0.02); b.box(MK.glass(), 0.35, 0.45, 0.02, 0, 1.55, 0.05); b.box(ss, wd - 0.04, 0.3, 0.02, 0, 0.17, 0.05); b.box(sp, 0.03, 0.2, 0.05, (k ? -1 : 1) * 0.3, 1.05, 0.08); }); }
+      WB.at(SK.M4(d[0], 0, d[1], 0, d[2], 0), function (b) { b.box(sp, n * wd + 0.12, 0.06, 0.08, 0, 2.23, 0.02); [-1, 1].forEach(function (sd) { b.box(sp, 0.06, 2.26, 0.08, sd * (n * wd / 2 + 0.03), 1.13, 0.02); }); b.box(MK.lamp(0x33ff88), 0.34, 0.14, 0.04, 0, 2.5, 0.04); });
+    });
+    WB.build(root, { cast: false });
+    /* drain: slot drain & floor drain */
+    var dgeo = new T.PlaneGeometry(16, 0.12); SK.scaleUV(dgeo, 32, 0.24); B.geo(MK.grating(), dgeo, SK.M4(1.5, 0.004, 1.15, -Math.PI / 2)); B.box(new T.MeshStandardMaterial({ color: 0x1a1f22, roughness: 0.9 }), 16, 0.002, 0.14, 1.5, 0.001, 1.15);
+    [[-2.1, -1.2], [5.0, 1.8]].forEach(function (q) { B.box(ss, 0.3, 0.006, 0.3, q[0], 0.003, q[1]); var gg = new T.PlaneGeometry(0.26, 0.26); SK.scaleUV(gg, 0.5, 0.5); B.geo(MK.grating(), gg, SK.M4(q[0], 0.007, q[1], -Math.PI / 2)); });
+    /* ---- utilitas di atas: fabric duct, sprinkler, cable tray + kabel turun ke instrumen */
+    var fab = new T.MeshStandardMaterial({ color: 0xf1f2ef, roughness: 1.0, metalness: 0 });
+    B.cylX(fab, 0.34, W - 1.5, (X0 + X1) / 2, 5.15, 2.3, 24); for (var hx = X0 + 1.5; hx < X1 - 1; hx += 1.5) B.rod(MK.steel(), [hx, 5.49, 2.3], [hx, H, 2.3], 0.004, 4);
+    [-1.6, 3.4].forEach(function (z) { B.rod(MK.red(), [X0 + 0.3, 5.65, z], [X1 - 0.3, 5.65, z], 0.028, 10); for (var sx = X0 + 1.2; sx < X1; sx += 3.0) { B.rod(MK.red(), [sx, 5.65, z], [sx, 5.5, z], 0.012, 6); B.cyl(MK.paint(0xd6b24a, 0.4, 0.6), 0.02, 0.01, 0.04, sx, 5.47, z, 0, 0, 0, 8); } });
+    SK.cableTray(B, [[X0 + 0.2, 4.4, -3.8], [X1 - 0.2, 4.4, -3.8]], { w: 0.3, mat: ss, cables: 5 });
+    var cab = MK.paint(0x5d6166, 0.6, 0.1);
+    [[0.3, 0, 1.78], [1.6, 0, 1.72], [2.75, 0, 1.78]].forEach(function (q) { B.tube(cab, [[q[0], 4.42, -3.7], [q[0], 4.42, -0.35], [q[0], 2.6, -0.35], [q[0] + 0.12, q[2] + 0.1, -0.05]], 0.008, 0.25); });
+    B.tube(cab, [[-3.2, 4.42, -3.7], [-3.2, 4.42, -2.0], [-4.3, 3.2, 1.2], [-3.35, 1.6, 1.45]], 0.008, 0.4);
+    /* ---- TANGKI TK-101 */
     var prof = [[0.06, 0.60], [0.95, 1.05], [0.95, 2.45], [0.90, 2.62], [0.75, 2.76], [0.5, 2.85], [0.2, 2.89], [0.001, 2.9]];
     var tank = plant.tank = new T.Group(); tank.position.set(-3.2, 0, 0); root.add(tank);
     tank.add(TW.lathe(prof, mTankShell, 56));
     var filmMat = plant.tankFilmMat = new T.MeshBasicMaterial({ color: COL.A, transparent: true, opacity: 0.5, depthWrite: false, side: T.BackSide });
     var tf = TW.lathe(prof.map(function (p) { return [p[0] * 0.985, p[1] - (p[1] > 0.7 ? 0.002 : 0)]; }), filmMat, 40); tf.castShadow = false; tf.renderOrder = 3; tank.add(tf);
-    [[0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]].forEach(function (p) { put(tank, TW.cyl(0.05, 0.05, 1.1, mSteelS, 12), p[0], 0.55, p[1]); });
-    // cairan produk
+    var TB = new SK.Batch();
+    [1.05, 2.45].forEach(function (y) { TB.torus(sp, 0.955, 0.006, 0, y, 0, Math.PI / 2, 0, 0, Math.PI * 2, 56); });
+    [[0.68, 0.68], [-0.68, 0.68], [0.68, -0.68], [-0.68, -0.68]].forEach(function (q) {
+      TB.cyl(ss, 0.045, 0.045, 1.02, q[0], 0.6, q[1], 0, 0, 0, 16); TB.box(ss, 0.16, 0.2, 0.12, q[0] * 0.93, 1.05, q[1] * 0.93);
+      TB.box(MK.paint(0x2f3a44, 0.4, 0.5), 0.12, 0.07, 0.12, q[0], 0.14, q[1]); TB.cyl(ss, 0.07, 0.08, 0.025, q[0], 0.0125, q[1], 0, 0, 0, 18); TB.sph(sp, 0.035, q[0], 0.06, q[1], 12);
+      TB.rod(MK.paint(0x2a2a2a, 0.6, 0.1), [q[0], 0.17, q[1]], [q[0] * 1.2, 0.02, q[1] * 1.2], 0.005, 6);
+    });
+    TB.cyl(sp, 0.12, 0.12, 0.3, 0, 3.12, 0, 0, 0, 0, 24); TB.box(MK.paint(0x2f5d8a, 0.45, 0.35), 0.24, 0.16, 0.2, 0, 3.35, 0); TB.cylX(MK.paint(0x2f5d8a, 0.45, 0.35), 0.1, 0.36, 0.25, 3.35, 0, 24); TB.cyl(ss, 0.035, 0.035, 0.26, 0, 2.97, 0, 0, 0, 0, 12);
+    TB.at(SK.M4(0.45, 2.8, 0.3, 0.38, 0, -0.5), function (b) { b.cyl(sp, 0.2, 0.2, 0.08, 0, 0.04, 0, 0, 0, 0, 32); b.cyl(sp, 0.215, 0.215, 0.025, 0, 0.09, 0, 0, 0, 0, 32); b.box(ss, 0.12, 0.05, 0.05, 0.22, 0.1, 0); b.rod(ss, [-0.15, 0.1, 0], [-0.3, 0.12, 0], 0.012, 8); });
+    TB.cyl(sp, 0.06, 0.06, 0.25, -0.4, 3.0, -0.28, 0, 0, 0, 20); TB.cyl(sp, 0.075, 0.075, 0.02, -0.4, 3.13, -0.28, 0, 0, 0, 20);
+    TB.cyl(sp, 0.05, 0.05, 0.08, 0.1, 2.93, -0.55, -0.3, 0, 0, 16); TB.cyl(MK.glass(), 0.04, 0.04, 0.01, 0.1, 2.975, -0.57, -0.3, 0, 0, 16);
+    TB.sph(sp, 0.08, 0, 0.5, 0, 16); TB.cyl(sp, 0.06, 0.06, 0.16, 0, 0.4, 0.14, Math.PI / 2, 0, 0, 16); TB.cyl(MK.paint(0xf3f4f2, 0.3, 0.1), 0.06, 0.06, 0.2, 0, 0.62, 0.24, 0, 0, 0, 20);
+    TB.build(tank);
     var liqMat = plant.liqMat = new T.MeshStandardMaterial({ color: COL.B, transparent: true, opacity: 0.55, roughness: 0.2, depthWrite: false });
     plant.liqCone = put(tank, new T.Mesh(new T.CylinderGeometry(0.94, 0.06, 0.45, 40), liqMat), 0, 0.825, 0);
     plant.liqCyl = put(tank, new T.Mesh(new T.CylinderGeometry(0.94, 0.94, 1, 40), liqMat), 0, 1.05, 0);
     plant.liqCone.renderOrder = plant.liqCyl.renderOrder = 2;
-    // pengaduk + motor + manway
-    put(tank, TW.cyl(0.13, 0.13, 0.22, mBlue, 24), 0, 3.0, 0); put(tank, TW.cyl(0.03, 0.03, 1.7, mSteelS, 12), 0, 2.1, 0);
+    put(tank, TW.cyl(0.03, 0.03, 1.7, mSteelS, 12), 0, 2.1, 0);
     plant.agit = new T.Group(); plant.agit.position.set(0, 1.35, 0); tank.add(plant.agit);
-    plant.agit.add(TW.box(0.55, 0.03, 0.09, mPolS)); var bl2 = TW.box(0.55, 0.03, 0.09, mPolS); bl2.rotation.y = Math.PI / 2; plant.agit.add(bl2);
-    put(tank, TW.cyl(0.16, 0.16, 0.05, mSteelS, 24), 0.42, 2.83, 0.28).rotation.set(0.4, 0, 0.55);
-    // spray ball
+    for (var bl = 0; bl < 3; bl++) { var bb = TW.box(0.36, 0.02, 0.1, mPolS); bb.position.x = 0.18; var arm = new T.Group(); arm.rotation.y = bl * Math.PI * 2 / 3; bb.rotation.x = 0.5; arm.add(bb); plant.agit.add(arm); }
     plant.ball = put(tank, TW.sph(0.09, mPolS, 20), 0, 2.34, 0);
     for (var i = 0; i < 12; i++) { var a = i / 12 * Math.PI * 2; var hole = TW.sph(0.014, mDark, 6); hole.position.set(Math.cos(a) * 0.085, -0.02 - (i % 3) * 0.02, Math.sin(a) * 0.085); plant.ball.add(hole); }
     put(tank, TW.cyl(0.05, 0.05, 0.4, mSteelS, 16), 0, 2.62, 0);
-    TW.label('TK-101 &middot; tangki produk', tank, { off: [0, 3.35, 0], cls: '', group: 'eq' });
+    TW.label('TK-101 &middot; tangki produk', tank, { off: [0, 3.75, 0], cls: '', group: 'eq' });
     TW.label('bola spray CIP', plant.ball, { off: [0, -0.25, 0.1], cls: '', group: 'eq', maxD: 9 });
-
-    /* POMPA P-101 */
+    /* platform & tangga stainless untuk akses atas tangki */
+    SK.platform(B, { x0: -4.7, x1: -2.55, z0: -2.05, z1: -1.15, y: 2.3, mat: ss, rail: ss, gaps: [{ e: 'e', at: 0.45, w: 0.9 }], rails: { n: 1, s: 0, e: 1, w: 1 }, brace: false });
+    SK.stairs(B, { x: 0.47, z: -1.6, h: 2.3, ry: Math.PI, mat: ss, rail: ss, w: 0.85 });
+    /* ---- POMPA P-101 (higienis, shroud stainless) */
     var pump = new T.Group(); pump.position.set(-1.75, 0.42, 0); root.add(pump);
-    put(pump, cylZ(0.26, 0.12, mSteel, 36), 0, 0, 0); put(pump, cylZ(0.17, 0.5, mBlue, 30), 0, 0, -0.3);
-    put(pump, TW.box(0.7, 0.05, 0.8, mSteelS), -0.05, -0.4, -0.15);
-    put(pump, TW.cyl(0.055, 0.055, 0.22, mSteel, 20), 0, 0.3, 0); put(pump, cylX(0.055, 0.2, mSteel, 20), -0.24, -0.04, 0);
+    var PB = new SK.Batch();
+    PB.cylZ(sp, 0.22, 0.12, 0, 0, 0, 40); PB.cylZ(sp, 0.2, 0.03, 0, 0, 0.07, 40); PB.torus(ss, 0.205, 0.008, 0, 0, 0.06, 0, 0, 0, Math.PI * 2, 40);
+    PB.cylZ(sp, 0.17, 0.62, 0, 0, -0.45, 40); PB.add(new T.SphereGeometry(0.17, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2), sp, SK.M4(0, 0, -0.76, -Math.PI / 2, 0, 0, 1, 0.35, 1));
+    PB.cylZ(ss, 0.08, 0.1, 0, 0, -0.1, 20);
+    PB.box(ss, 0.5, 0.02, 0.95, 0, -0.26, -0.3); [[-0.2, 0.12], [0.2, 0.12], [-0.2, -0.72], [0.2, -0.72]].forEach(function (q) { PB.cyl(ss, 0.018, 0.018, 0.16, q[0], -0.34, q[1], 0, 0, 0, 10); PB.cyl(ss, 0.04, 0.045, 0.02, q[0], -0.41, q[1], 0, 0, 0, 14); });
+    PB.cyl(sp, 0.055, 0.055, 0.22, 0, 0.3, 0, 0, 0, 0, 20); PB.cylX(sp, 0.055, 0.2, -0.24, -0.04, 0, 20);
+    PB.build(pump);
     TW.label('P-101', pump, { off: [0, 0.55, 0], group: 'eq' });
-
-    /* PIPA */
+    /* ---- PIPA proses */
     var y = 1.5, XA = 3.65;
     pipes.main = TW.pipe([[-3.2, 0.6, 0], [-3.2, 0.38, 0], [-1.95, 0.38, 0]], RO, { mat: mPipe });
     pipes.main2 = TW.pipe([[-1.75, 0.62, 0], [-1.75, y, 0], [XA, y, 0]], RO, { mat: mPipe });
@@ -307,43 +371,106 @@ var HY = (function () {
     pipes.ret = TW.pipe([[XA, y, 0], [5.2, y, 0], [5.2, 2.05, 0], [6.95, 2.05, 0], [6.95, 1.72, 0]], RO, { mat: mPipe });
     pipes.sup = TW.pipe([[5.55, 0.65, 0.75], [5.55, 3.6, 0.75], [-3.2, 3.6, 0.75], [-3.2, 3.6, 0], [-3.2, 2.45, 0]], RO * 0.9, { mat: mPipe });
     Object.keys(pipes).forEach(function (k) { root.add(pipes[k].group); });
-    // film kotoran di dinding pipa proses
     var fm = plant.pipeFilmMat = new T.MeshBasicMaterial({ color: COL.A, transparent: true, opacity: 0.5, depthWrite: false });
     ['main', 'main2', 'prod'].forEach(function (k) {
       var f = new T.Mesh(new T.TubeGeometry(pipes[k].path, Math.max(24, Math.round(pipes[k].length / 0.06)), RO * 0.9, 16, false), fm); f.renderOrder = 3; root.add(f);
     });
-    // valve divert 3-arah
+    /* support higienis, hanger plafon, tri-clamp */
+    [-1.1, 1.0, 2.2, 3.25].forEach(function (x) { SK.hygSupport(B, x, 0, y, RO); });
+    SK.hygSupport(B, -2.55, 0, 0.38, RO); SK.hygSupport(B, 4.5, 0, y, RO); SK.hygSupport(B, 6.1, 0, 2.05, RO); SK.hygSupport(B, XA, 1.2, 0.55, RO);
+    [4.4, 2.4, 0.4, -1.6].forEach(function (x) { B.rod(MK.steel(), [x, 3.6 + RO, 0.75], [x, H, 0.75], 0.006, 6); B.torus(sp, RO * 0.9 + 0.008, 0.008, x, 3.6, 0.75, 0, Math.PI / 2, 0, Math.PI * 2, 24); B.box(ss, 0.08, 0.02, 0.08, x, H - 0.01, 0.75); });
+    B.rod(MK.steel(), [-3.2, 3.6 + RO, 0.2], [-3.2, H, 0.2], 0.006, 6);
+    [[-1.4, y, 0, 1], [0.75, y, 0, 1], [1.95, y, 0, 1], [3.35, y, 0, 1], [4.2, y, 0, 1], [-2.6, 0.38, 0, 1], [3.0, 3.6, 0.75, 1], [-1.0, 3.6, 0.75, 1], [6.1, 2.05, 0, 1]].forEach(function (q) { SK.triClamp(B, [q[0], q[1], q[2]], [1, 0, 0], RO); });
+    [[-1.75, 0.85, 0], [-1.75, 1.2, 0], [XA, 0.9, 0], [5.55, 2.4, 0.75], [-3.2, 2.75, 0]].forEach(function (q) { SK.triClamp(B, q, [0, 1, 0], RO); });
+    /* valve kupu-kupu manual di discharge pompa */
+    B.cyl(sp, RO + 0.02, RO + 0.02, 0.05, -1.75, 1.02, 0, 0, 0, 0, 24); B.box(ss, 0.03, 0.03, 0.05, -1.75, 1.02, RO + 0.04); B.box(MK.paint(0x2f5d8a, 0.4, 0.3), 0.03, 0.02, 0.26, -1.75, 1.02, RO + 0.18);
+    /* valve divert V-101 (mixproof + control top) */
     var v3 = plant.v3 = new T.Group(); v3.position.set(XA, y, 0); root.add(v3);
-    put(v3, TW.sph(0.09, mSteel, 20), 0, 0, 0); put(v3, TW.cyl(0.075, 0.075, 0.22, mBlue, 20), 0, 0.2, 0); put(v3, TW.cyl(0.02, 0.02, 0.12, mSteelS, 10), 0, 0.09, 0);
-    put(v3, TW.cyl(0.055, 0.055, 0.12, mSteel, 20), 0, -0.12, 0);
-    plant.v3Lbl = TW.label('V-101 &middot; 3-arah', v3, { off: [0, 0.4, 0], group: 'eq' });
-    // kepala filling
-    var fill = new T.Group(); fill.position.set(XA, 0.55, 1.7); root.add(fill);
-    put(fill, TW.cyl(0.09, 0.05, 0.16, mSteelS, 20), 0, 0, 0.04).rotation.x = Math.PI / 2; put(fill, TW.box(0.5, 0.05, 0.4, mSteelS), 0, -0.45, 0.1);
-    TW.label('ke FILLING', fill, { off: [0, 0.25, 0], group: 'eq' });
-
-    /* SKID CIP */
+    var VB = new SK.Batch();
+    VB.sph(sp, 0.085, 0, 0, 0, 24); VB.cyl(sp, 0.07, 0.07, 0.2, 0, -0.1, 0, 0, 0, 0, 24); VB.cyl(sp, 0.028, 0.028, 0.1, 0, 0.12, 0, 0, 0, 0, 12);
+    VB.cyl(sp, 0.07, 0.07, 0.3, 0, 0.32, 0, 0, 0, 0, 28); VB.torus(ss, 0.072, 0.006, 0, 0.18, 0, Math.PI / 2, 0, 0, Math.PI * 2, 28); VB.torus(ss, 0.072, 0.006, 0, 0.46, 0, Math.PI / 2, 0, 0, Math.PI * 2, 28);
+    VB.cyl(MK.paint(0xf0f1ef, 0.35, 0.05), 0.075, 0.075, 0.1, 0, 0.53, 0, 0, 0, 0, 28); VB.add(new T.SphereGeometry(0.075, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), MK.paint(0xf0f1ef, 0.35, 0.05), SK.M4(0, 0.58, 0, 0, 0, 0, 1, 0.45, 1));
+    VB.tube(MK.paint(0x2f7fd6, 0.4, 0.1), [[0.075, 0.53, 0], [0.12, 0.53, 0], [0.12, 0.3, 0.05]], 0.004, 0.02);
+    VB.build(v3);
+    plant.v3Led = new T.Mesh(new T.TorusGeometry(0.076, 0.006, 8, 32), new T.MeshStandardMaterial({ color: 0x111111, emissive: 0x2fd66b, emissiveIntensity: 1.6 })); plant.v3Led.rotation.x = Math.PI / 2; plant.v3Led.position.y = 0.5; v3.add(plant.v3Led);
+    plant.v3Lbl = TW.label('V-101 &middot; 3-arah', v3, { off: [0, 0.85, 0], group: 'eq' });
+    /* ---- FILLER + konveyor + botol */
+    var fillG = new T.Group(); fillG.position.set(XA, 0.55, 1.7); root.add(fillG);
+    B.box(ss, 1.3, 0.9, 0.9, XA, 0.45, 2.2); B.box(sp, 1.32, 0.03, 0.92, XA, 0.91, 2.2);
+    B.box(MK.glass(), 1.3, 1.0, 0.02, XA, 1.42, 2.65); B.box(MK.glass(), 0.02, 1.0, 0.9, XA - 0.65, 1.42, 2.2); B.box(MK.glass(), 0.02, 1.0, 0.9, XA + 0.65, 1.42, 2.2);
+    [[-0.65, 1.75], [0.65, 1.75], [-0.65, 2.65], [0.65, 2.65]].forEach(function (q) { B.box(sp, 0.04, 1.05, 0.04, XA + q[0], 1.42, q[1]); });
+    B.box(ss, 1.34, 0.04, 0.94, XA, 1.94, 2.2); B.cyl(sp, 0.28, 0.24, 0.24, XA, 1.66, 2.2, 0, 0, 0, 32);
+    for (var n = 0; n < 8; n++) { var an = n / 8 * Math.PI * 2; B.cyl(sp, 0.012, 0.012, 0.3, XA + Math.cos(an) * 0.2, 1.4, 2.2 + Math.sin(an) * 0.2, 0, 0, 0, 8); }
+    B.box(ss, 0.5, 0.4, 0.3, XA + 0.35, 1.2, 1.8); B.box(new T.MeshBasicMaterial({ color: 0x1b3a5c }), 0.3, 0.2, 0.01, XA + 0.35, 1.25, 1.64);
+    TW.label('ke FILLING', fillG, { off: [0, 1.75, 0.5], group: 'eq' });
+    var cx0 = 0.9, cx1 = 9.6, cz = 2.2, cyv = 0.92;
+    [-1, 1].forEach(function (sd) { B.box(sp, cx1 - cx0, 0.07, 0.015, (cx0 + cx1) / 2, cyv, cz + sd * 0.08); B.box(ss, cx1 - cx0, 0.012, 0.015, (cx0 + cx1) / 2, cyv + 0.07, cz + sd * 0.1); });
+    B.box(new T.MeshStandardMaterial({ color: 0x3a4652, roughness: 0.5 }), cx1 - cx0, 0.01, 0.15, (cx0 + cx1) / 2, cyv + 0.03, cz);
+    for (var lx2 = cx0 + 0.3; lx2 < cx1; lx2 += 1.4) { [-1, 1].forEach(function (sd) { B.cyl(ss, 0.018, 0.018, cyv, lx2, cyv / 2, cz + sd * 0.1, 0, 0, 0, 10); B.cyl(ss, 0.035, 0.04, 0.02, lx2, 0.01, cz + sd * 0.1, 0, 0, 0, 12); }); B.box(ss, 0.02, 0.02, 0.22, lx2, 0.3, cz); }
+    var NB = 34, bot = plant.bottles = new T.InstancedMesh(new T.CylinderGeometry(0.035, 0.035, 0.17, 16), new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.12, metalness: 0, transparent: true, opacity: 0.82 }), NB);
+    var caps = plant.caps = new T.InstancedMesh(new T.CylinderGeometry(0.018, 0.018, 0.03, 12), MK.paint(0x2f6fd6, 0.4, 0.1), NB);
+    bot.castShadow = true; root.add(bot); root.add(caps); plant.bot = { n: NB, x0: cx0 + 0.1, x1: cx1 - 0.1, y: cyv + 0.12, z: cz, off: 0 };
+    for (var bi = 0; bi < NB; bi++) bot.setColorAt(bi, new T.Color(0xdde8ee));
+    /* ---- SKID CIP */
     var sk = new T.Group(); root.add(sk);
-    put(sk, TW.box(3.7, 0.06, 2.2, mSteelS), 6.95, 0.03, 0.25);
+    var SKB = new SK.Batch();
+    [[5.1, -0.85], [8.8, -0.85], [5.1, 1.35], [8.8, 1.35]].forEach(function (q) { SKB.box(ss, 0.06, 0.28, 0.06, q[0], 0.14, q[1]); SKB.cyl(ss, 0.05, 0.055, 0.02, q[0], 0.01, q[1], 0, 0, 0, 14); });
+    SKB.box(ss, 3.7, 0.06, 0.06, 6.95, 0.28, -0.85); SKB.box(ss, 3.7, 0.06, 0.06, 6.95, 0.28, 1.35); SKB.box(ss, 0.06, 0.06, 2.2, 5.1, 0.28, 0.25); SKB.box(ss, 0.06, 0.06, 2.2, 8.8, 0.28, 0.25);
+    var dp = new T.PlaneGeometry(3.7, 2.2); SK.scaleUV(dp, 7.4, 4.4); SKB.geo(MK.grating(), dp, SK.M4(6.95, 0.31, 0.25, -Math.PI / 2));
     var tanks = plant.skidTanks = [];
     [[5.95, 'TK-AIR', COL.water], [6.95, 'TK-NaOH', COL.caustic], [7.95, 'TK-ASAM', COL.acid]].forEach(function (d) {
-      var mat = M.std(0xc7d0d7, 0.9, 0.3, { emissive: 0x000000 }); var t = new T.Group(); t.position.set(d[0], 0, -0.1); sk.add(t);
-      put(t, TW.cyl(0.42, 0.42, 1.3, mat, 32), 0, 0.85, 0); put(t, TW.sph(0.42, mat, 24), 0, 1.5, 0).scale.y = 0.4;
-      [[0.29, 0.29], [-0.29, 0.29], [0.29, -0.29], [-0.29, -0.29]].forEach(function (p) { put(t, TW.cyl(0.035, 0.035, 0.2, mSteelS, 8), p[0], 0.13, p[1]); });
-      var band = put(t, TW.cyl(0.425, 0.425, 0.14, M.std(d[2], 0.3, 0.5), 32), 0, 1.1, 0);
+      var mat = new T.MeshStandardMaterial({ color: 0xffffff, map: SK.tex.brushed(), metalness: 0.9, roughness: 0.3, emissive: 0x000000 }); var t = new T.Group(); t.position.set(d[0], 0, -0.1); sk.add(t);
+      put(t, TW.cyl(0.42, 0.42, 1.2, mat, 36), 0, 1.0, 0); put(t, TW.sph(0.42, mat, 28), 0, 1.6, 0).scale.y = 0.35; put(t, TW.cyl(0.42, 0.08, 0.3, mat, 36), 0, 0.25, 0);
+      [0.0, 2.1, 4.2].forEach(function (a) { put(t, TW.cyl(0.03, 0.03, 0.5, mSteelS, 10), Math.cos(a) * 0.36, 0.55, Math.sin(a) * 0.36); });
+      put(t, TW.cyl(0.425, 0.425, 0.12, M.std(d[2], 0.3, 0.5), 36), 0, 1.25, 0);
+      put(t, TW.cyl(0.12, 0.12, 0.05, mPolS, 20), 0.15, 1.72, 0.1); put(t, TW.cyl(0.03, 0.03, 0.18, mPolS, 12), -0.2, 1.78, 0); put(t, TW.cyl(0.035, 0.035, 0.07, mPolS, 16), -0.2, 1.9, 0);
       tanks.push({ mat: mat, x: d[0], col: d[2], grp: t });
-      TW.label(d[1], t, { off: [0, 1.95, 0], group: 'eq' });
-      sk.add(TW.rod([d[0], 0.3, -0.1], [d[0], 0.28, 0.55], 0.03, mSteelS, 10));
+      TW.label(d[1], t, { off: [0, 2.2, 0], group: 'eq' });
+      SKB.rod(mSteelS, [d[0], 0.12, -0.1], [d[0], 0.12, 0.55], 0.028, 12); SKB.cyl(mPolS, 0.045, 0.045, 0.08, d[0], 0.12, 0.3, Math.PI / 2, 0, 0, 16); SKB.cyl(MK.paint(0x2f5d8a, 0.4, 0.3), 0.03, 0.03, 0.12, d[0], 0.22, 0.3, 0, 0, 0, 14);
     });
-    sk.add(TW.rod([5.55, 0.28, 0.55], [7.95, 0.28, 0.55], 0.035, mSteelS, 12));
-    put(sk, cylZ(0.17, 0.3, mBlue, 24), 5.55, 0.4, 0.75); put(sk, cylX(0.2, 1.3, mSteelS, 24), 7.0, 0.5, 1.15);
-    TW.label('SKID CIP', sk, { off: [6.95, 2.35, 0], group: 'eq' });
+    SKB.rod(mSteelS, [5.55, 0.12, 0.55], [7.95, 0.12, 0.55], 0.032, 12);
+    SKB.at(SK.M4(5.55, 0.32, 0.75, 0, Math.PI, 0), function (b) { b.cylZ(sp, 0.16, 0.1, 0, 0.1, 0, 32); b.cylZ(sp, 0.12, 0.45, 0, 0.1, -0.3, 28); b.box(ss, 0.3, 0.02, 0.6, 0, -0.01, -0.2); });
+    var phe = MK.paint(0x2f5d8a, 0.45, 0.35);
+    SKB.box(phe, 0.12, 0.95, 0.52, 6.45, 0.8, 1.05); SKB.box(phe, 0.1, 0.85, 0.48, 7.45, 0.8, 1.05); SKB.box(ss, 0.05, 0.9, 0.05, 8.0, 0.75, 1.05);
+    SKB.geo(new T.MeshStandardMaterial({ map: SK.tex.platePack(), metalness: 0.8, roughness: 0.35 }), new T.BoxGeometry(0.88, 0.8, 0.44), SK.M4(6.95, 0.8, 1.05));
+    SKB.rod(ss, [6.45, 1.3, 1.05], [8.0, 1.3, 1.05], 0.025, 10); SKB.rod(ss, [6.45, 0.35, 1.05], [8.0, 0.35, 1.05], 0.02, 10);
+    [[1.2, 0.84], [1.2, 1.26], [0.42, 0.84], [0.42, 1.26]].forEach(function (q) { SKB.rod(MK.steel(), [6.35, q[0], q[1]], [7.55, q[0], q[1]], 0.012, 8); SKB.cyl(MK.steel(), 0.022, 0.022, 0.03, 7.53, q[0], q[1], 0, 0, Math.PI / 2, 6); });
+    [[1.05, 0.9], [1.05, 1.2], [0.55, 0.9], [0.55, 1.2]].forEach(function (q) { SKB.cylX(sp, 0.035, 0.12, 6.35, q[0], q[1], 14); });
+    SKB.box(ss, 0.6, 1.5, 0.35, 9.35, 0.95, 0.25); SKB.box(sp, 0.62, 0.04, 0.37, 9.35, 1.72, 0.25);
+    SKB.build(sk);
+    plant.hmiC = document.createElement('canvas'); plant.hmiC.width = 256; plant.hmiC.height = 192; plant.hmiT = new T.CanvasTexture(plant.hmiC); plant.hmiT.encoding = T.sRGBEncoding;
+    var hmiMat = new T.MeshBasicMaterial({ map: plant.hmiT, toneMapped: false });
+    var hm1 = new T.Mesh(new T.PlaneGeometry(0.42, 0.31), hmiMat); hm1.rotation.y = -Math.PI / 2; hm1.position.set(9.02, 1.25, 0.25); sk.add(hm1);
+    TW.label('SKID CIP', sk, { off: [6.95, 2.55, 0], group: 'eq' });
     TW.label('P-CIP', sk, { off: [5.55, 0.85, 0.75], group: 'eq', maxD: 12 });
-    TW.label('pemanas (HX)', sk, { off: [7.0, 0.9, 1.15], group: 'eq', maxD: 12 });
-
-    // partikel semprotan & pelepasan kotoran
+    TW.label('PHE pemanas', sk, { off: [6.95, 1.45, 1.05], group: 'eq', maxD: 12 });
+    TW.label('panel CIP + HMI', sk, { off: [9.35, 2.0, 0.25], group: 'eq', maxD: 14 });
+    /* ---- HMI operator, panel MCC, wastafel, rambu, operator */
+    B.cyl(ss, 0.05, 0.05, 1.1, -5.2, 0.55, 2.0, 0, 0, 0, 14); B.cyl(ss, 0.2, 0.22, 0.03, -5.2, 0.015, 2.0, 0, 0, 0, 20); B.box(ss, 0.5, 0.38, 0.08, -5.2, 1.3, 2.0, -0.35, 0, 0);
+    var hm2 = new T.Mesh(new T.PlaneGeometry(0.44, 0.32), hmiMat); hm2.position.set(-5.2, 1.315, 2.045); hm2.rotation.x = -0.35; root.add(hm2);
+    TW.label('HMI operator', new T.Vector3(-5.2, 1.75, 2.0), { group: 'eq', maxD: 12 });
+    for (var m = 0; m < 3; m++) { B.box(MK.paint(0xd6dadc, 0.5, 0.2), 0.5, 2.0, 0.8, X1 - 0.27, 1.0, -3.4 + m * 0.82); B.box(MK.dark(), 0.02, 1.9, 0.01, X1 - 0.52, 1.0, -3.4 + m * 0.82 + 0.4); B.box(MK.paint(0xe8b800, 0.5, 0.2), 0.01, 0.12, 0.12, X1 - 0.53, 1.7, -3.4 + m * 0.82); }
+    TW.label('panel MCC / PLC', new T.Vector3(X1 - 0.3, 2.3, -2.6), { group: 'eq', maxD: 16 });
+    B.box(ss, 0.9, 0.2, 0.5, X0 + 0.3, 0.9, 0.6); B.box(ss, 0.06, 0.9, 0.5, X0 + 0.3, 0.45, 0.6); B.rod(sp, [X0 + 0.12, 1.0, 0.6], [X0 + 0.12, 1.25, 0.6], 0.012, 8); B.rod(sp, [X0 + 0.12, 1.25, 0.6], [X0 + 0.3, 1.25, 0.6], 0.012, 8);
+    SK.sign(-4.6, 3.0, Z0 + 0.02, 0, 2.4, 0.8, function (g, w, h) { g.fillStyle = '#1565c0'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = 'bold 48px sans-serif'; g.textAlign = 'center'; g.fillText('ZONA HIGIENIS', w / 2, h * 0.42); g.font = 'bold 30px sans-serif'; g.fillText('WAJIB APD · CUCI TANGAN', w / 2, h * 0.78); });
+    SK.sign(8.2, 3.0, Z0 + 0.02, 0, 2.0, 0.6, function (g, w, h) { g.fillStyle = '#f2c500'; g.fillRect(0, 0, w, h); g.fillStyle = '#111'; g.font = 'bold 46px sans-serif'; g.textAlign = 'center'; g.fillText('AWAS KIMIA CIP', w / 2, h * 0.45); g.font = 'bold 30px sans-serif'; g.fillText('NaOH · HNO₃ · PANAS', w / 2, h * 0.82); });
+    SK.human(B, -5.2, 2.55, Math.PI, { suit: 0xf0f2f3, hat: 0xf6f7f8, pose: 'tablet' });
+    SK.human(B, 6.2, 3.6, -2.6, { suit: 0xf0f2f3, hat: 0x2f6fd6 });
+    B.build(root);
     spray = new TW.PSys(700, 'soft', true);
     shed = new TW.PSys(900, 'soft', false);
+  }
+  function drawHMI() {
+    if (!plant.hmiC) return;
+    var g = plant.hmiC.getContext('2d'), st = S.steps[S.i], ph = S.phase;
+    g.fillStyle = '#0c1a26'; g.fillRect(0, 0, 256, 192); g.fillStyle = '#16324a'; g.fillRect(0, 0, 256, 26);
+    g.fillStyle = '#9fe7ff'; g.font = 'bold 15px sans-serif'; g.fillText('CIP · TK-101 / L-101', 8, 18);
+    var txt = { SOILED: 'SIAP CIP', CIP: st ? st.name : 'CIP', CIPDONE: 'CIP SELESAI', HOLD: 'JEDA', PRODB: 'PRODUKSI B', DONE: 'SELESAI' }[ph] || ph;
+    g.fillStyle = ph === 'CIP' ? '#ffd27f' : (ph === 'PRODB' ? '#9fe7a8' : '#cfe6f5'); g.font = 'bold 19px sans-serif'; g.fillText(txt, 8, 52);
+    g.fillStyle = '#cfe6f5'; g.font = '14px monospace';
+    g.fillText('T balik : ' + S.T.toFixed(1) + ' C', 8, 82); g.fillText('Konduk. : ' + S.cond.toFixed(2) + ' mS', 8, 102); g.fillText('Aliran  : ' + (ph === 'CIP' ? R.vel.toFixed(1) : (ph === 'PRODB' ? '1.0' : '0.0')) + ' m/s', 8, 122);
+    if (ph === 'CIP' && st) { g.fillStyle = '#23384d'; g.fillRect(8, 140, 240, 14); g.fillStyle = '#00e5ff'; g.fillRect(8, 140, 240 * S.tStep / st.dur, 14); g.fillStyle = '#cfe6f5'; g.font = '12px monospace'; g.fillText('langkah ' + (S.i + 1) + '/' + S.steps.length, 8, 176); }
+    plant.hmiT.needsUpdate = true;
   }
 
   /* --------------------------------------------------- fluida & visual */
@@ -644,12 +771,14 @@ var HY = (function () {
     TW.key('R', function () { br.click(); });
     TW.key(' ', function () { if (S.phase === 'SOILED' || S.phase === 'DONE') runCycle(); else resetCycle(); });
     TW.camButtons('cam-btns', [
-      { name: 'OVERVIEW', pos: [2.4, 5.0, 16.6], tgt: [2.4, 1.2, 0] },
+      { name: 'OVERVIEW', pos: [1.8, 6.6, 17.5], tgt: [1.5, 1.4, -0.3] },
       { name: 'TANGKI &middot; LT', pos: [-2.6, 1.9, 2.4], tgt: [-3.2, 1.45, 0.9] },
       { name: 'PT-101', pos: [0.4, 1.95, 0.75], tgt: [0.3, 1.58, 0] },
       { name: 'TT-101', pos: [1.75, 2.05, 0.8], tgt: [1.62, 1.6, 0] },
       { name: 'FT-101', pos: [2.75, 1.95, 1.0], tgt: [2.75, 1.5, 0] },
-      { name: 'SKID CIP', pos: [7.4, 3.2, 5.6], tgt: [6.9, 0.9, 0] }
+      { name: 'SKID CIP', pos: [7.6, 2.7, 4.6], tgt: [7.0, 1.0, 0.1] },
+      { name: 'DALAM RUANG', pos: [9.2, 2.3, 4.9], tgt: [-0.5, 1.3, -1.2] },
+      { name: 'FILLING', pos: [4.9, 2.2, 4.6], tgt: [3.4, 1.1, 2.1] }
     ]);
     // ganti nama tombol dengan entitas HTML
     Array.prototype.forEach.call($('cam-btns').children, function (b) { b.innerHTML = b.textContent; });
@@ -657,7 +786,20 @@ var HY = (function () {
   }
 
   /* ---------------------------------------------------------------- loop */
-  var shedAcc = {}, sprayAcc = 0, agitA = 0;
+  var shedAcc = {}, sprayAcc = 0, agitA = 0, hmiAcc = 1;
+  var bm4 = new T.Object3D(), bCol = new T.Color(), eCol = new T.Color(0xdde8ee);
+  function updateBottles(dt) {
+    var b = plant.bot; if (!b) return; if (S.phase === 'PRODB') b.off += dt * 0.32;
+    var L = b.x1 - b.x0, sp2 = L / b.n, fx = 3.65;
+    bCol.copy(plant.liqMat.color);
+    for (var i = 0; i < b.n; i++) {
+      var x = b.x0 + ((i * sp2 + b.off) % L), filled = x > fx + 0.1 && (S.phase === 'PRODB' || S.phase === 'DONE');
+      bm4.position.set(x, b.y, b.z); bm4.scale.set(1, 1, 1); bm4.updateMatrix(); plant.bottles.setMatrixAt(i, bm4.matrix);
+      plant.bottles.setColorAt(i, filled ? bCol : eCol);
+      bm4.position.y = b.y + 0.1; bm4.scale.setScalar(filled ? 1 : 0.0001); bm4.updateMatrix(); plant.caps.setMatrixAt(i, bm4.matrix);
+    }
+    plant.bottles.instanceMatrix.needsUpdate = true; plant.caps.instanceMatrix.needsUpdate = true; if (plant.bottles.instanceColor) plant.bottles.instanceColor.needsUpdate = true;
+  }
   function frame(dt) {
     var sdt = dt * R.speed;
     if (S.phase === 'CIP' || S.phase === 'PRODB') advance(sdt);
@@ -692,6 +834,9 @@ var HY = (function () {
     shed.update(dt);
     if (rotors) rotors.forEach(function (r) { r.rotation.z += dt * (S.phase === 'CIP' || S.phase === 'PRODB' ? 9 : 0); });
     agitA += dt * (S.phase === 'PRODB' ? 2.2 : 0); plant.agit.rotation.y = agitA;
+    updateBottles(dt);
+    plant.v3Led.material.emissive.set(S.phase === 'CIP' ? 0xffc233 : (S.phase === 'PRODB' ? 0x2fd66b : 0x3a7bd5));
+    hmiAcc += dt; if (hmiAcc > 0.3) { hmiAcc = 0; drawHMI(); }
     applyFluidVisual();
     updateZoneVisuals(HY.showRes);
     updateUI(false);
@@ -706,13 +851,14 @@ var HY = (function () {
   }
 
   HY.start = function () {
-    TW.init({ bg: 0x0a141f, fog: { color: 0x0a141f, near: 26, far: 70 }, cam: [2.4, 5.0, 16.6], target: [2.4, 1.2, 0], shadowSize: 13, exposure: 1.05 });
+    TW.init({ bg: 0x1e252c, room: {}, hemi: 0.9, hemiSky: 0xffffff, hemiGround: 0x9aa3a8, sun: 1.5, sunColor: 0xfffaf0, sunDir: [0.25, 1.0, 0.4], fill: 0.25, cam: [1.8, 6.6, 17.5], target: [1.5, 1.4, -0.3], shadowSize: 11, shadowCenter: [1.5, 0, 0.5], exposure: 1.0, maxDist: 60 });
     buildPlant();
     baseZone = { slot: 'BASE', X: 1.0, mass: 1, Ro: 1, Rm: 1, logM: 5, chem: 0 };
     SLOTS.forEach(function (sl) { slotState[sl.id] = { vi: 0, group: null, labels: [], zones: [] }; });
     SLOTS.forEach(function (sl) { installSlot(sl, slotState[sl.id].vi); });
     chart = new TW.Chart($('trend-canvas'), { series: [{ name: 'Suhu °C', color: '#ffd27f', min: 0, max: 100 }, { name: 'Konduktivitas', color: '#5cf0ff', min: 0, max: 60 }, { name: 'Residu %', color: '#ff5d6c', min: 0, max: 100 }], span: 120, legend: true, tunit: 'm', fmt: function (v) { return v.toFixed(0); } });
     wireUI(); buildInstUI(); select('LT');
+    TW.ics({ title: '3D TWIN \u00B7 INSTRUMENT HYGIENIC &amp; PROSES CIP', extra: 'Nilai residu, ATP, mikroba dan batas terima adalah ilustrasi; validasi CIP nyata mengikuti prosedur pabrik, 3-A/EHEDG/ASME BPE dan regulasi setempat.' });
     TW.onUpdate(frame);
     resetCycle();
     TW.start();

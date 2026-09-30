@@ -132,3 +132,24 @@ ul.pc li{margin:2px 0}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .ico{font-family:var(--f-m)}
 @media (max-width:1250px){.hud-body{grid-template-columns:280px 1fr 320px}}
+
+/* ---------- ICS Cademy: logo, watermark, peringatan (fallback bila icsnotice.js tidak ada) ---------- */
+.hdr-left{display:flex;align-items:center;gap:12px}
+.ics-logo{display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:42px;border:1.5px solid var(--cy);border-radius:6px;background:linear-gradient(160deg,rgba(0,229,255,.22),rgba(0,40,70,.6));box-shadow:0 0 14px rgba(0,229,255,.35),inset 0 0 10px rgba(0,229,255,.2);flex:none}
+.ics-logo b{font:900 17px var(--f-h);letter-spacing:.08em;color:#fff;line-height:1;text-shadow:0 0 8px rgba(0,229,255,.8)}
+.ics-logo small{font:700 7px var(--f-h);letter-spacing:.2em;color:var(--cy);margin-top:3px}
+.ics-logo.big{width:86px;height:70px}
+.ics-logo.big b{font-size:28px}
+.ics-logo.big small{font-size:10px}
+.ics-wm{position:fixed;right:14px;bottom:8px;z-index:3;pointer-events:none;font:600 11px var(--f-h);letter-spacing:.1em;color:rgba(0,229,255,.55);text-shadow:0 0 6px rgba(0,0,0,.8)}
+.ics-notice{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(2,8,14,.72);backdrop-filter:blur(4px);transition:opacity .35s}
+.ics-notice.hide{opacity:0;pointer-events:none}
+.ics-box{width:min(620px,92vw);background:linear-gradient(180deg,rgba(10,24,40,.97),rgba(6,14,24,.97));border:1.5px solid var(--warn);border-radius:8px;padding:20px 24px 18px;box-shadow:0 0 50px rgba(255,176,32,.25),0 10px 40px rgba(0,0,0,.6)}
+.ics-top{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.ics-warn{font:900 20px var(--f-h);letter-spacing:.14em;color:var(--warn);text-shadow:0 0 12px rgba(255,176,32,.5)}
+.ics-title{font:700 14px var(--f-h);letter-spacing:.08em;color:#fff;margin-top:4px}
+.ics-series{font-size:13px;color:var(--mut);margin-top:2px}
+.ics-box ul{margin:8px 0 16px 18px;padding:0;font-size:14px;line-height:1.55;color:var(--tx)}
+.ics-box ul li{margin:5px 0}
+.ics-box ul b{color:#fff}
+.ics-box .btn{width:100%;padding:11px;font-size:13px}

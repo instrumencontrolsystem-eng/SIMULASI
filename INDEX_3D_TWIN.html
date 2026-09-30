@@ -6,6 +6,7 @@
 <title>3D Twin Instrument — ICS Cademy</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="twin_common.css">
+<script src="icsnotice.js" onerror="window.ICS_NOTICE_MISSING=true"></script>
 <style>
   html,body{overflow:auto}
   .wrap{max-width:1080px;margin:0 auto;padding:34px 20px 60px}
@@ -23,8 +24,9 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>3D TWIN &middot; INSTRUMENT PROSES &amp; KESELAMATAN</h1>
-  <p class="lead">Simulasi interaktif ICS Cademy: pilih instrument, picu kegagalan, dan lihat sendiri akibatnya. Semua berjalan di browser (Three.js), tanpa server.</p>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px"><div class="ics-logo big"><b>ICS</b><small>CADEMY</small></div><div><h1>3D TWIN &middot; INSTRUMENT PROSES &amp; KESELAMATAN</h1><div style="color:var(--mut);font-size:14px">Materi lanjutan seri 3D Twin ICS Cademy</div></div></div>
+  <div style="border:1.5px solid var(--warn);border-radius:6px;background:rgba(255,176,32,.08);padding:10px 14px;margin:12px 0 22px;font-size:14px;line-height:1.5"><b style="color:var(--warn);font-family:var(--f-h);letter-spacing:.1em">&#9888; PERINGATAN</b> &mdash; Lanjutan dari <b>3D Twin Cara Kerja Instrument Level</b>. Semua angka dan model adalah ilustrasi untuk pembelajaran, <b>bukan</b> untuk desain, validasi CIP, klasifikasi area, atau perhitungan SIL nyata. Skenario kebakaran hanya simulasi visual. Hak cipta ICS Cademy.</div>
+  <p class="lead">Simulasi interaktif: lokasi 3D seperti kondisi lapangan (ruang produksi higienis, plant gas bertekanan, wellpad HIPPS). Pilih instrument, picu kegagalan, dan lihat sendiri akibatnya. Semua berjalan di browser (Three.js), tanpa server.</p>
   <div class="grid">
     <a class="tile" href="HYGIENIC_CIP_3D_TWIN.html">
       <div class="k">FOOD &amp; FARMASI</div>

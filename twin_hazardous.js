@@ -46,139 +46,243 @@ var HZ = (function () {
   var scn = {}, gas, pm, INS = null, jet, vesFire, tankFire, flare, rackFire, burn = [], colT = 0, chartFlam, chartEn;
 
   /* ------------------------------------------------------------- posisi */
-  var LEAK = new T.Vector3(2.24, 1.35, 0.14), P_INS = new T.Vector3(2.95, 0.95, 0.35), GD = new T.Vector3(3.8, 1.25, 0.1), VES = new T.Vector3(-1.8, 1.6, 0), TANK = new T.Vector3(7.0, 2.9, -1.2);
-  var INS_C = new T.Vector3(2.95, 1.42, 0.35);
-
-  var mSteel = M.std(0xaeb6bd, 0.85, 0.35), mDark = M.std(0x15181a, 0.1, 0.7), mGlass = M.std(0x0b2c3f, 0.2, 0.15, { emissive: 0x0a4c66, emissiveIntensity: 0.9 });
-  var mVessel = M.std(0xb6c3bc, 0.6, 0.4), mTankM = M.std(0xd7dde0, 0.6, 0.35), mPaint = M.std(0x3d6f8f, 0.4, 0.5), mYellow = M.std(0xf2c500, 0.3, 0.5), mConcrete = M.std(0x2c343c, 0.05, 0.9, { envMapIntensity: 0.1 });
+  var LEAK = new T.Vector3(2.24, 1.35, 0.14), P_INS = new T.Vector3(2.95, 0.95, 0.35), GD = new T.Vector3(3.8, 1.25, 0.1), VES = new T.Vector3(-0.8, 1.75, -3.3), TANK = new T.Vector3(10.5, 3.6, -2.4);
+  var INS_C = new T.Vector3(2.95, 1.28, 0.35), PAD = 0.12, VR = 1.1, TR = 2.3;
+  var MK = SK.mat;
   var mZ2, mZ1, mZ0;
   function put(g, m, x, y, z) { m.position.set(x, y, z); g.add(m); return m; }
-  function cylX(r, h, mat, seg) { var m = TW.cyl(r, r, h, mat, seg || 20); m.rotation.z = Math.PI / 2; return m; }
-  function cylZ(r, h, mat, seg) { var m = TW.cyl(r, r, h, mat, seg || 20); m.rotation.x = Math.PI / 2; return m; }
 
   /* --------------------------------------------------------------- scene */
   function buildPlant() {
-    TW.ground(80, '#161e26', 'rgba(255,180,0,.07)');
-    var pad = TW.box(24, 0.06, 14, mConcrete); pad.position.set(1, 0.03, 0.5); TW.add(pad);
-    var berm = M.std(0x1c242c, 0.05, 0.9, { envMapIntensity: 0.1 });
-    /* bejana V-201 */
-    var ves = scn.ves = new T.Group(); ves.position.copy(VES); TW.add(ves);
-    scn.vesMat = mVessel.clone(); scn.vesMat.userData.base = mVessel.color.clone();
-    var body = cylX(1.1, 5.0, scn.vesMat, 40); ves.add(body);
-    [-2.5, 2.5].forEach(function (x) { var h = TW.sph(1.1, scn.vesMat, 30); h.scale.set(0.45, 1, 1); h.position.x = x; ves.add(h); });
-    [-1.6, 1.4].forEach(function (x) { var s = TW.box(0.3, 1.1, 1.8, mSteel); s.position.set(VES.x + x, 0.5, 0); TW.add(s); });
-    put(ves, TW.cyl(0.14, 0.14, 0.5, mSteel, 16), 0, 1.3, 0);
-    scn.z0 = new T.Mesh(new T.CylinderGeometry(1.0, 1.0, 5.4, 32), mZ0); scn.z0.rotation.z = Math.PI / 2; ves.add(scn.z0);
-    TW.label('V-201 &middot; separator gas', ves, { off: [0, 1.9, 0], group: 'eq' });
-    /* rack pipa */
-    var pr = M.std(0x9aa5ad, 0.8, 0.4);
-    TW.add(TW.rod([VES.x, 2.7, 0], [VES.x, 3.7, 0], 0.11, pr, 16)); TW.add(TW.rod([VES.x, 3.7, 0], [9.2, 3.7, 0], 0.11, pr, 16)); TW.add(TW.rod([VES.x, 3.7, 0.42], [9.2, 3.7, 0.42], 0.07, pr, 14));
-    TW.add(TW.rod([VES.x, 3.7, 0], [VES.x, 3.7, 0.42], 0.05, pr, 10));
-    [3.6, 6.6, 9.2].forEach(function (x) { TW.add(TW.at(TW.box(0.14, 3.7, 0.14, mPaint), x, 1.85, 0.2)); TW.add(TW.at(TW.box(0.14, 0.14, 0.9, mPaint), x, 3.55, 0.2)); });
-    /* riser + flange F-201 */
-    scn.pipeMat = M.std(0x9aa5ad, 0.8, 0.4); scn.pipeMat.userData.base = scn.pipeMat.color.clone();
-    TW.add(TW.rod([2.2, 3.7, 0], [2.2, 1.38, 0], 0.09, scn.pipeMat, 18)); TW.add(TW.rod([2.2, 1.32, 0], [2.2, 0.5, 0], 0.09, scn.pipeMat, 18));
-    var fl = new T.Group(); fl.position.set(2.2, 1.35, 0); TW.add(fl);
-    put(fl, TW.cyl(0.19, 0.19, 0.035, mSteel, 32), 0, 0.028, 0); put(fl, TW.cyl(0.19, 0.19, 0.035, mSteel, 32), 0, -0.028, 0); put(fl, TW.cyl(0.165, 0.165, 0.022, mDark, 32), 0, 0, 0);
-    for (var i = 0; i < 8; i++) { var a = i / 8 * Math.PI * 2; put(fl, TW.cyl(0.013, 0.013, 0.15, mSteel, 8), Math.cos(a) * 0.15, 0, Math.sin(a) * 0.15); }
-    scn.flange = fl;
-    var v = new T.Group(); v.position.set(2.2, 0.8, 0); TW.add(v); put(v, TW.sph(0.13, mPaint, 16), 0, 0, 0); put(v, TW.cyl(0.02, 0.02, 0.3, mSteel, 8), 0, 0.2, 0); put(v, TW.torus(0.09, 0.012, mYellow), 0, 0.36, 0).rotation.x = Math.PI / 2;
-    TW.label('F-201 &middot; flange (sumber kebocoran)', LEAK, { off: [0, -0.28, 0], group: 'eq', maxD: 16 });
-    /* impulse line ke instrument */
-    TW.add(TW.rod([2.2, 1.0, 0], [2.6, 1.0, 0.2], 0.022, mSteel, 8)); TW.add(TW.rod([2.6, 1.0, 0.2], [P_INS.x, 0.9, P_INS.z], 0.022, mSteel, 8));
-    /* tangki bola T-202 */
-    var tk = scn.tank = new T.Group(); tk.position.copy(TANK); TW.add(tk);
-    scn.tankMat = mTankM.clone(); scn.tankMat.userData.base = mTankM.color.clone();
-    tk.add(TW.sph(1.5, scn.tankMat, 36));
-    for (i = 0; i < 6; i++) { var b = i / 6 * Math.PI * 2; var lg = TW.cyl(0.07, 0.07, 1.9, mSteel, 8); lg.position.set(Math.cos(b) * 1.15, -1.0, Math.sin(b) * 1.15); lg.rotation.set(Math.sin(b) * 0.2, 0, -Math.cos(b) * 0.2); tk.add(lg); }
-    TW.label('T-202 &middot; bola LPG', tk, { off: [0, 1.9, 0], group: 'eq' });
-    /* flare */
-    var fs = new T.Group(); fs.position.set(-9, 0, -5.5); TW.add(fs); put(fs, TW.cyl(0.3, 0.3, 0.6, mSteel, 12), 0, 0.3, 0); put(fs, TW.cyl(0.13, 0.17, 12, mSteel, 12), 0, 6, 0);
-    TW.label('flare stack', fs, { off: [0, 12.6, 0], group: 'eq', maxD: 40 });
-    flare = TW.fx.fire([-9, 12.15, -5.5], { size: 0.5, rate: 40, speed: 1.6, spread: 0.2, smoke: 0.15, light: false }); flare.k = 0.22;
-    /* bangunan kontrol + barrier */
-    var bd = new T.Group(); bd.position.set(-7.4, 0, 4.4); TW.add(bd);
-    put(bd, TW.box(3.4, 2.6, 2.6, M.std(0x34434f, 0.1, 0.8)), 0, 1.3, 0); put(bd, TW.box(3.5, 0.15, 2.7, M.std(0x222c34, 0.1, 0.8)), 0, 2.65, 0);
-    put(bd, TW.box(0.9, 1.6, 0.06, M.std(0x111a22, 0.3, 0.5)), 0.8, 0.9, 1.32);
-    TW.label('RUANG KONTROL &middot; AREA AMAN', bd, { off: [0, 3.0, 0], group: 'eq', maxD: 40 });
-    var cab = new T.Group(); cab.position.set(-4.9, 0, 3.7); TW.add(cab); put(cab, TW.box(0.8, 1.5, 0.4, M.std(0x707a82, 0.5, 0.5)), 0, 0.75, 0);
-    var bar = put(cab, TW.box(0.5, 0.5, 0.06, M.std(0x1c7d4a, 0.3, 0.5)), 0, 1.0, 0.23); scn.barLed = put(cab, TW.sph(0.035, M.std(0x1aff7a, 0, 0.3, { emissive: 0x1aff7a, emissiveIntensity: 1.6 }), 10), 0.16, 1.2, 0.27);
-    scn.barLbl = TW.label('BARRIER Ex ia', cab, { off: [0, 1.75, 0], group: 'eq', maxD: 30 });
-    scn.cabinet = cab;
-    /* detektor gas GD-201 */
-    var gd = new T.Group(); gd.position.copy(GD); TW.add(gd); put(gd, TW.cyl(0.03, 0.03, 1.25, mSteel, 8), 0, -0.6, 0); put(gd, TW.cyl(0.08, 0.08, 0.13, mYellow, 16), 0, 0.02, 0);
-    scn.gdLed = put(gd, TW.sph(0.028, M.std(0x1aff7a, 0, 0.3, { emissive: 0x1aff7a, emissiveIntensity: 1.6 }), 8), 0, 0.02, 0.08);
-    scn.gdLbl = TW.label('GD-201', gd, { off: [0, 0.3, 0], group: 'eq', maxD: 22 });
-    /* windsock */
-    var ws = scn.sock = new T.Group(); ws.position.set(5.2, 0, 3.4); TW.add(ws); put(ws, TW.cyl(0.04, 0.05, 3.4, mSteel, 8), 0, 1.7, 0);
-    var stripes = TW.canvasTex(128, 128, function (g, w, h) { for (var k = 0; k < 4; k++) { g.fillStyle = k % 2 ? '#ffffff' : '#ff5a1f'; g.fillRect(k * 32, 0, 32, 128); } });
-    var cone = new T.Mesh(new T.CylinderGeometry(0.34, 0.14, 1.5, 16, 1, true), new T.MeshBasicMaterial({ map: stripes, side: T.DoubleSide })); cone.geometry.translate(0, 0.75, 0);
-    var sockPivot = scn.sockPivot = new T.Group(); sockPivot.position.set(0, 3.4, 0); ws.add(sockPivot); cone.rotation.z = -Math.PI / 2; sockPivot.add(cone); scn.sockCone = cone;
-    TW.label('arah angin', ws, { off: [0, 3.9, 0], group: 'eq', maxD: 25 });
-    /* rambu Ex */
-    var sg = new T.Group(); sg.position.set(-3.0, 0, 3.8); TW.add(sg); put(sg, TW.cyl(0.04, 0.04, 2.6, mSteel, 8), 0, 1.3, 0);
-    var sp = TW.plate(1.5, 1.1, function (g, w, h) {
-      g.fillStyle = '#f2c500'; g.fillRect(0, 0, w, h); g.strokeStyle = '#111'; g.lineWidth = 8; g.strokeRect(6, 6, w - 12, h - 12);
-      g.fillStyle = '#111'; g.font = 'bold 72px sans-serif'; g.textAlign = 'center'; g.fillText('Ex', w * 0.5, h * 0.52);
-      g.font = 'bold 26px sans-serif'; g.fillText('AREA BERBAHAYA', w * 0.5, h * 0.72); g.font = 'bold 24px sans-serif'; g.fillText('ZONA 1 / 2 · DILARANG API', w * 0.5, h * 0.9);
-    }, 512); sp.position.set(0, 2.4, 0.06); sg.add(sp);
-    /* zona */
+    var B = new SK.Batch(), st = MK.paint(0x4f5b66, 0.6, 0.3), pipe = MK.paint(0x8e969c, 0.5, 0.5);
+    SK.ground(B, { pads: [[-8, -8.5, 14.5, 4.4, PAD, 0.3]], roads: [[-40, 11.5, 40, 16.5], [16.5, -40, 21.5, 11.5]] });
+    SK.horizon({ skip: [-2.3, 0.35] });
+    /* ---- pipe rack 4 bent, 2 tier + cable tray */
+    var bents = [-11, -5.5, 0, 5.5];
+    SK.pipeRack(B, { xs: bents, z: 0, w: 2.4, levels: [3.2, 4.4] });
+    function rackLine(y, z, r, mat, clad) {
+      var pts = [[-12.6, -0.1, z], [-12.6, y + r, z], [7.3, y + r, z], [7.3, PAD + 0.05, z]];
+      B.tube(mat, pts, r, r * 3); if (clad) B.tube(MK.cladding(), pts, r + 0.045, (r + 0.045) * 3);
+      bents.forEach(function (x) { B.box(MK.steel(), 0.26, 0.08, 0.18, x, y + 0.04, z); });
+      B.box(MK.concrete(), 0.5, 0.25, 0.5, 7.3, PAD + 0.12, z);
+      SK.flangeAt(B, mat, [-8.2, y + r, z], [1, 0, 0], r); SK.flangeAt(B, mat, [3.6, y + r, z], [1, 0, 0], r);
+    }
+    rackLine(3.2, -0.8, 0.06, pipe); rackLine(3.2, 0.72, 0.09, pipe, true); rackLine(3.2, -0.35, 0.05, MK.paint(0x2e7d4f, 0.5, 0.4));
+    rackLine(4.4, -0.55, 0.15, MK.paint(0x9a9fa3, 0.55, 0.45)); rackLine(4.4, 0.35, 0.07, MK.paint(0x39658f, 0.5, 0.4));
+    SK.cableTray(B, [[-12.6, 4.45, 1.0], [7.3, 4.45, 1.0]], { w: 0.4, cables: 6 });
+    bents.forEach(function (x) { B.box(MK.red(), 0.18, 0.55, 0.18, x + 0.2, PAD + 1.2, 1.35); });
+    /* ---- jalur LPG: V-201 -> rack -> riser F-201 -> valve -> jalur tanah -> T-202 (material bisa memanas) */
+    scn.pipeMat = MK.paint(0x8e969c, 0.5, 0.5).clone(); scn.pipeMat.userData.base = scn.pipeMat.color.clone();
+    var pm = scn.pipeMat, r6 = 0.084;
+    B.tube(pm, [[-0.4, VES.y + VR + 0.3, VES.z], [-0.4, 3.2 + r6, VES.z], [-0.4, 3.2 + r6, 0], [2.2, 3.2 + r6, 0], [2.2, 1.43, 0]], r6, 0.3);
+    SK.flangeAt(B, pm, [2.2, 1.35, 0], [0, 1, 0], r6);
+    B.rod(pm, [2.2, 1.27, 0], [2.2, 1.0, 0], r6, 18);
+    SK.gateValve(B, [2.2, 0.86, 0], 'y', r6, { mat: MK.paint(0x3c4a3e, 0.55, 0.4) });
+    B.tube(pm, [[2.2, 0.72, 0], [2.2, PAD + 0.45, 0], [10.5, PAD + 0.45, 0], [10.5, PAD + 0.45, TANK.z], [10.5, TANK.y - TR - 0.12, TANK.z]], r6, 0.3);
+    [3.6, 6.5, 9.2].forEach(function (x) { B.box(MK.concrete(), 0.35, 0.3, 0.6, x, PAD + 0.15, 0); B.box(MK.steel(), 0.2, 0.06, 0.16, x, PAD + 0.33, 0); });
+    B.box(MK.concrete(), 0.6, 0.3, 0.35, 10.5, PAD + 0.15, -1.2);
+    /* tapping + root valve + tubing ke manifold transmitter */
+    B.rod(pm, [2.2 + r6, 1.06, 0], [2.36, 1.06, 0], 0.016, 10); SK.ballValve(B, [2.4, 1.06, 0], 'x', 0.014, { lever: true, mat: MK.ss() });
+    B.tube(MK.ssPol(), [[2.44, 1.06, 0], [2.62, 1.06, 0], [2.62, 1.06, 0.35], [2.95 - 0.13, 0.95 + 0.035, 0.35]], 0.0065, 0.05);
+    /* stand transmitter + JB */
+    SK.pipeStand(B, 2.95, 0.13, 0.92, { y0: PAD }); B.box(MK.galv(), 0.02, 0.1, 0.24, 2.95 - 0.04, 0.99, 0.24); B.box(MK.galv(), 0.1, 0.02, 0.2, 2.95, 0.94, 0.25);
+    SK.jb(B, 2.95, 0.62, 0.22, 0, { w: 0.24, h: 0.26, d: 0.12, mat: MK.paint(0x8c969e, 0.45, 0.4) });
+    /* ---- separator V-201 (badan bisa pecah -> grup sendiri) */
+    scn.vesMat = MK.paint(0xe3e5e2, 0.5, 0.2).clone(); scn.vesMat.userData.base = scn.vesMat.color.clone();
+    var ves = scn.ves = new T.Group(); TW.add(ves);
+    var VB = new SK.Batch();
+    SK.hVessel(VB, { parts: 'body', c: [VES.x, VES.y, VES.z], R: VR, L: 5, ground: PAD, mat: scn.vesMat, plate: [0.6, 0.1, VR + 0.01],
+      nozzles: [{ p: [0.4, VR - 0.05, 0], r: r6, len: 0.2 }, { p: [-1.9, VR - 0.05, 0], r: 0.1, len: 0.2 }, { p: [-0.9, VR - 0.05, 0], r: 0.05, len: 0.18 }, { p: [1.2, -VR + 0.05, 0], d: [0, -1, 0], r: 0.06, len: 0.18 },
+        { p: [-2.1, 0.6, VR - 0.05], d: [0, 0, 1], r: 0.04, len: 0.28 }, { p: [-2.1, -0.6, VR - 0.05], d: [0, 0, 1], r: 0.04, len: 0.28 }, { p: [2.6, 0, 0], d: [1, 0, 0], r: 0.25, len: 0.12, blind: true }] });
+    VB.build(ves);
+    SK.hVessel(B, { parts: 'supports', c: [VES.x, VES.y, VES.z], R: VR, L: 5, ground: PAD, mat: MK.paint(0xe3e5e2, 0.5, 0.2) });
+    scn.z0 = new T.Mesh(new T.CylinderGeometry(VR * 0.92, VR * 0.92, 5.2, 32), mZ0); scn.z0.rotation.z = Math.PI / 2; scn.z0.position.copy(VES); ves.add(scn.z0);
+    TW.label('V-201 &middot; separator gas', ves, { off: [VES.x, VES.y + 1.9, VES.z], group: 'eq' });
+    /* pipa inlet, PSV ke flare header, level bridle, drain */
+    B.tube(pipe, [[VES.x - 1.9, VES.y + VR + 0.3, VES.z], [VES.x - 1.9, 3.45, VES.z], [-4.6, 3.45, VES.z], [-4.6, PAD + 0.45, VES.z], [-14, PAD + 0.45, VES.z]], 0.1, 0.35);
+    [-6.5, -9.5, -12.5].forEach(function (x) { B.box(MK.concrete(), 0.35, 0.3, 0.6, x, PAD + 0.15, VES.z); });
+    var psv = [VES.x - 0.9, VES.y + VR + 0.25, VES.z];
+    B.cyl(MK.paint(0xc0392b, 0.45, 0.2), 0.07, 0.08, 0.2, psv[0], psv[1] + 0.12, psv[2], 0, 0, 0, 16); B.cyl(MK.paint(0xc0392b, 0.45, 0.2), 0.045, 0.06, 0.26, psv[0], psv[1] + 0.35, psv[2], 0, 0, 0, 14); B.cyl(MK.dark(), 0.03, 0.03, 0.06, psv[0], psv[1] + 0.51, psv[2], 0, 0, 0, 10);
+    B.tube(pipe, [[psv[0] + 0.07, psv[1] + 0.12, psv[2]], [-1.2, psv[1] + 0.12, psv[2]], [-1.2, 4.95, psv[2]], [-1.2, 4.95, -0.55], [-1.2, 4.4 + 0.3, -0.55]], 0.05, 0.2);
+    var bx = VES.x - 2.1, bz = VES.z + VR + 0.28;
+    B.rod(pipe, [bx, VES.y - 0.9, bz], [bx, VES.y + 0.9, bz], 0.045, 14); B.box(MK.paint(0x39434b, 0.5, 0.4), 0.05, 1.2, 0.06, bx + 0.08, VES.y, bz); B.box(MK.glass(), 0.02, 1.1, 0.03, bx + 0.08, VES.y, bz + 0.03);
+    B.tube(pipe, [[VES.x + 1.2, VES.y - VR - 0.25, VES.z], [VES.x + 1.2, PAD + 0.35, VES.z], [VES.x + 1.2, PAD + 0.35, -8.3]], 0.05, 0.15);
+    SK.gateValve(B, [VES.x + 1.2, VES.y - VR - 0.45, VES.z], 'y', 0.05);
+    /* platform akses + tangga monyet */
+    SK.platform(B, { x0: -3.4, x1: 1.2, z0: VES.z - VR - 1.0, z1: VES.z - VR - 0.05, y: VES.y + VR + 0.05, y0: PAD, gaps: [{ e: 'w', at: 0.5, w: 0.7 }], rails: { n: 1, s: 0, e: 1, w: 1 } });
+    SK.ladder(B, { x: -3.45, z: VES.z - VR - 0.55, y0: PAD, y1: VES.y + VR + 0.05, ry: -Math.PI / 2 });
+    /* ---- bola LPG T-202 */
+    scn.tankMat = MK.paint(0xeef0ef, 0.45, 0.2).clone(); scn.tankMat.userData.base = scn.tankMat.color.clone();
+    var tk = scn.tank = new T.Group(); TW.add(tk);
+    var TB = new SK.Batch();
+    TB.sph(scn.tankMat, TR, TANK.x, TANK.y, TANK.z, 48);
+    TB.torus(MK.steel(), TR + 0.01, 0.012, TANK.x, TANK.y, TANK.z, Math.PI / 2, 0, 0, Math.PI * 2, 64); TB.torus(MK.steel(), TR * 0.87, 0.01, TANK.x, TANK.y + TR * 0.5, TANK.z, Math.PI / 2, 0, 0, Math.PI * 2, 64); TB.torus(MK.steel(), TR * 0.87, 0.01, TANK.x, TANK.y - TR * 0.5, TANK.z, Math.PI / 2, 0, 0, Math.PI * 2, 64);
+    TB.cyl(scn.tankMat, 0.7, 0.75, 0.12, TANK.x, TANK.y + TR - 0.02, TANK.z, 0, 0, 0, 24);
+    [[0.35, 0], [-0.35, 0.1]].forEach(function (q) { TB.cyl(MK.paint(0xc0392b, 0.45, 0.2), 0.06, 0.07, 0.35, TANK.x + q[0], TANK.y + TR + 0.2, TANK.z + q[1], 0, 0, 0, 14); });
+    TB.torus(MK.red(), TR * 0.55, 0.03, TANK.x, TANK.y + TR * 0.84, TANK.z, Math.PI / 2, 0, 0, Math.PI * 2, 40);
+    TB.build(tk);
+    var legs = [], nL = 8;
+    for (var i = 0; i < nL; i++) { var a = (i + 0.5) / nL * Math.PI * 2; legs.push([TANK.x + Math.cos(a) * TR * 0.98, TANK.z + Math.sin(a) * TR * 0.98]); }
+    legs.forEach(function (l, i) {
+      B.cyl(MK.paint(0x6c7680, 0.55, 0.35), 0.13, 0.13, TANK.y - PAD, l[0], PAD + (TANK.y - PAD) / 2, l[1], 0, 0, 0, 14);
+      B.cyl(MK.concrete(), 0.19, 0.19, (TANK.y - PAD) * 0.62, l[0], PAD + (TANK.y - PAD) * 0.31, l[1], 0, 0, 0, 14);
+      B.box(MK.concrete(), 0.6, 0.3, 0.6, l[0], PAD + 0.15, l[1]);
+      var n = legs[(i + 1) % nL], y0 = PAD + (TANK.y - PAD) * 0.64, y1 = TANK.y - 0.35;
+      B.rod(MK.steel(), [l[0], y0, l[1]], [n[0], y1, n[1]], 0.022, 6); B.rod(MK.steel(), [l[0], y1, l[1]], [n[0], y0, n[1]], 0.022, 6);
+    });
+    var twx = TANK.x - TR - 1.4, top = TANK.y + TR + 0.12;
+    SK.platform(B, { x0: twx - 0.6, x1: twx + 0.6, z0: TANK.z - 0.6, z1: TANK.z + 0.6, y: top, y0: PAD, gaps: [{ e: 'e', at: 0.6, w: 0.8 }, { e: 's', at: 0.6, w: 0.7 }] });
+    SK.ladder(B, { x: twx, z: TANK.z + 0.62, y0: PAD, y1: top, ry: Math.PI });
+    var bg = new T.PlaneGeometry(TANK.x - 0.7 - (twx + 0.6), 0.8); SK.scaleUV(bg, 4, 1.6); B.geo(MK.grating(), bg, SK.M4((TANK.x - 0.7 + twx + 0.6) / 2, top, TANK.z, -Math.PI / 2));
+    SK.handrail(B, [[[twx + 0.6, top, TANK.z - 0.42], [TANK.x - 0.7, top, TANK.z - 0.42]], [[twx + 0.6, top, TANK.z + 0.42], [TANK.x - 0.7, top, TANK.z + 0.42]]]);
+    TW.label('T-202 &middot; bola LPG', tk, { off: [TANK.x, TANK.y + TR + 1.6, TANK.z], group: 'eq' });
+    /* ---- flare stack + guy wire */
+    var FX = -17, FZ = -13, FH = 22;
+    B.box(MK.concrete(), 1.4, 0.4, 1.4, FX, 0.2, FZ); B.cyl(MK.paint(0x8a8f93, 0.6, 0.4), 0.28, 0.4, FH, FX, 0.4 + FH / 2, FZ, 0, 0, 0, 16); B.cyl(MK.dark(), 0.34, 0.3, 0.8, FX, FH + 0.4, FZ, 0, 0, 0, 16);
+    SK.ladder(B, { x: FX, z: FZ + 0.45, y0: 0.4, y1: FH - 1.5, ry: Math.PI, mat: MK.galv() });
+    [0, 2.1, 4.2].forEach(function (a) { B.rod(MK.steel(), [FX, FH * 0.7, FZ], [FX + Math.cos(a) * 12, 0.05, FZ + Math.sin(a) * 12], 0.012, 4); B.box(MK.concrete(), 0.6, 0.3, 0.6, FX + Math.cos(a) * 12, 0.15, FZ + Math.sin(a) * 12); });
+    B.tube(MK.paint(0x9a9fa3, 0.55, 0.45), [[-12.6, 4.4 + 0.15, -0.55], [-14.5, 4.4 + 0.15, -0.55], [-14.5, 0.6, -0.55], [-14.5, 0.6, FZ], [FX + 0.5, 0.6, FZ], [FX + 0.5, 0.6, FZ]], 0.15, 0.5);
+    flare = TW.fx.fire([FX, FH + 0.9, FZ], { size: 0.8, rate: 50, speed: 1.8, spread: 0.25, smoke: 0.12, light: false }); flare.k = 0.22;
+    TW.label('flare stack', new T.Vector3(FX, FH + 2.4, FZ), { group: 'eq', maxD: 70 });
+    /* ---- gedung kontrol (area aman) */
+    var CB = [-12.8, 6.8], cw = 8, ch = 3.8, cd = 5.2, wm = new T.MeshStandardMaterial({ map: SK.tex.ribPanel('#d8d3c6'), roughness: 0.75, metalness: 0.15 });
+    var bgeo = new T.BoxGeometry(cw, ch, cd); SK.scaleUV(bgeo, cw / 4, 1); B.geo(wm, bgeo, SK.M4(CB[0], ch / 2, CB[1]));
+    B.box(MK.paint(0x8f8a80, 0.7, 0.1), cw + 0.3, 0.3, cd + 0.3, CB[0], ch + 0.15, CB[1]);
+    var fx = CB[0] + cw / 2, fz = CB[1] + cd / 2;
+    B.box(MK.paint(0x4f5963, 0.5, 0.4), 0.08, 2.2, 1.1, fx + 0.02, 1.1, CB[1] - 0.8); B.box(MK.glass(), 0.02, 0.3, 0.3, fx + 0.07, 1.6, CB[1] - 0.8); B.box(MK.steel(), 0.04, 0.03, 0.14, fx + 0.08, 1.05, CB[1] - 0.45);
+    B.box(MK.paint(0x6c747b, 0.5, 0.4), 0.9, 0.08, 1.4, fx + 0.45, 2.35, CB[1] - 0.8); B.box(MK.lamp(), 0.08, 0.1, 0.3, fx + 0.06, 2.5, CB[1] - 0.8);
+    B.box(MK.concrete(), 1.4, 0.15, 1.8, fx + 0.7, 0.075, CB[1] - 0.8); B.box(MK.concrete(), 0.5, 0.15, 1.8, fx + 1.6, 0.075, CB[1] - 0.8);
+    [[-2.2], [0.6]].forEach(function (q) { B.box(MK.paint(0xdfe2e0, 0.5, 0.1), 0.95, 0.7, 0.36, CB[0] + q[0], 0.5, fz + 0.22); B.cylZ(MK.dark(), 0.25, 0.02, CB[0] + q[0] - 0.1, 0.5, fz + 0.41, 24); for (var k2 = 0; k2 < 6; k2++) B.box(MK.steel(), 0.5, 0.008, 0.01, CB[0] + q[0] - 0.1, 0.32 + k2 * 0.07, fz + 0.42); B.tube(MK.paint(0x2b2b2b, 0.6, 0.1), [[CB[0] + q[0] + 0.3, 0.8, fz + 0.1], [CB[0] + q[0] + 0.3, 2.6, fz + 0.06]], 0.02, 0.1); });
+    [-3.2, -0.4, 2.4].forEach(function (x) { B.box(MK.paint(0x5b646c, 0.4, 0.5), 0.7, 0.5, 0.06, CB[0] + x, 2.4, fz + 0.01); B.box(MK.glass(), 0.6, 0.4, 0.02, CB[0] + x, 2.4, fz + 0.045); });
+    B.box(MK.paint(0x4f5963, 0.5, 0.4), 1.0, 2.2, 0.08, CB[0] - 1.0, 1.1, fz + 0.02);
+    SK.sign(fx + 0.02, 3.05, CB[1] + 1.2, Math.PI / 2, 2.4, 0.46, function (g, w, h) { g.fillStyle = '#0d3b66'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = 'bold 50px sans-serif'; g.textAlign = 'center'; g.fillText('CONTROL ROOM', w / 2, h * 0.68); });
+    SK.sign(CB[0] + 1.2, 3.1, fz + 0.03, 0, 1.6, 0.5, function (g, w, h) { g.fillStyle = '#1b8a3a'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = 'bold 44px sans-serif'; g.textAlign = 'center'; g.fillText('MUSTER POINT', w / 2, h * 0.66); });
+    TW.label('RUANG KONTROL &middot; AREA AMAN', new T.Vector3(CB[0], ch + 1.0, CB[1]), { group: 'eq', maxD: 60 });
+    /* kabinet barrier / marshalling (area aman) */
+    var cab = scn.cabinet = new T.Group(); cab.position.set(-8.2, 0, 8.7); cab.rotation.y = Math.PI / 2; TW.add(cab);
+    var KB = new SK.Batch();
+    KB.box(MK.concrete(), 1.4, 0.2, 0.9, 0, 0.1, 0); KB.box(MK.paint(0x8a939a, 0.45, 0.4), 1.0, 1.9, 0.5, 0, 1.15, 0); KB.box(MK.paint(0x7b848b, 0.45, 0.4), 1.02, 1.8, 0.02, 0, 1.15, 0.26);
+    KB.box(MK.glass(), 0.7, 0.8, 0.01, 0, 1.45, 0.275); KB.box(MK.paint(0x6c7680, 0.5, 0.4), 1.3, 0.05, 0.9, 0, 2.35, 0.1);
+    [-1, 1].forEach(function (sx) { KB.box(MK.galv(), 0.05, 2.25, 0.05, sx * 0.6, 1.25, 0.5); });
+    for (var k = 0; k < 8; k++) KB.box(MK.paint(0x2f6fd6, 0.4, 0.2), 0.06, 0.12, 0.1, -0.3 + k * 0.085, 1.5, 0.2);
+    KB.box(MK.steel(), 0.8, 0.02, 0.04, 0, 1.43, 0.2);
+    KB.build(cab);
+    scn.barLed = put(cab, new T.Mesh(new T.SphereGeometry(0.03, 10, 8), new T.MeshStandardMaterial({ color: 0x111111, emissive: 0x1aff7a, emissiveIntensity: 1.8 })), 0.38, 1.95, 0.28);
+    scn.barLbl = TW.label('BARRIER Ex ia', cab, { off: [0, 2.7, 0], group: 'eq', maxD: 40 });
+    /* parit kabel (cable trench) dari instrument ke kabinet */
+    var tr = [[3.2, 3.9], [-7.6, 3.9]];
+    B.box(MK.concrete(), Math.abs(tr[0][0] - tr[1][0]), 0.08, 0.5, (tr[0][0] + tr[1][0]) / 2, PAD + 0.02, 3.9);
+    for (var tx = tr[1][0] + 0.3; tx < tr[0][0]; tx += 0.62) B.box(MK.concrete(), 0.58, 0.05, 0.46, tx, PAD + 0.085, 3.9);
+    /* ---- detektor gas GD-201 */
+    SK.pipeStand(B, GD.x, GD.z - 0.12, 1.0, { y0: PAD });
+    var gd = new T.Group(); gd.position.copy(GD); TW.add(gd);
+    var GB = new SK.Batch();
+    GB.box(MK.paint(0x2b2f33, 0.5, 0.4), 0.16, 0.16, 0.1, 0, 0.02, -0.06); GB.cyl(MK.paint(0xf0c419, 0.45, 0.2), 0.045, 0.045, 0.12, 0, -0.12, 0, 0, 0, 0, 18);
+    GB.cyl(MK.dark(), 0.05, 0.035, 0.07, 0, -0.21, 0, 0, 0, 0, 18); GB.cyl(MK.paint(0x2b2f33, 0.5, 0.4), 0.02, 0.02, 0.07, 0.1, -0.02, -0.06, 0, 0, Math.PI / 2, 8);
+    GB.build(gd);
+    scn.gdLed = put(gd, new T.Mesh(new T.SphereGeometry(0.018, 10, 8), new T.MeshStandardMaterial({ color: 0x111111, emissive: 0x1aff7a, emissiveIntensity: 1.8 })), 0, 0.07, -0.005);
+    scn.gdLbl = TW.label('GD-201', gd, { off: [0, 0.35, 0], group: 'eq', maxD: 22 });
+    /* ---- windsock, lampu, pemadam, rambu, pekerja */
+    var WS = [CB[0] - 3.2, ch + 0.3, CB[1] - 1.8];
+    var ws = scn.sock = new T.Group(); ws.position.set(WS[0], WS[1] - 3.0, WS[2]); TW.add(ws);
+    B.box(MK.galv(), 0.3, 0.02, 0.3, WS[0], WS[1] + 0.01, WS[2]); B.cyl(MK.galv(), 0.04, 0.06, 3.2, WS[0], WS[1] + 1.6, WS[2], 0, 0, 0, 10);
+    var stripes = SK.signTex(128, 128, function (g, w, h) { for (var k = 0; k < 4; k++) { g.fillStyle = k % 2 ? '#ffffff' : '#ff5a1f'; g.fillRect(k * 32, 0, 32, 128); } });
+    var cone = new T.Mesh(new T.CylinderGeometry(0.34, 0.14, 1.5, 16, 1, true), new T.MeshStandardMaterial({ map: stripes, side: T.DoubleSide, roughness: 0.8 })); cone.geometry.translate(0, 0.75, 0); cone.castShadow = true;
+    var sockPivot = scn.sockPivot = new T.Group(); sockPivot.position.set(0, 6.15, 0); ws.add(sockPivot); cone.rotation.z = -Math.PI / 2; sockPivot.add(cone); scn.sockCone = cone;
+    TW.label('arah angin', ws, { off: [0, 7.0, 0], group: 'eq', maxD: 60 });
+    SK.lightPole(B, -7.6, 3.9, 8, 0.3); SK.lightPole(B, 14.2, -8.0, 8, 2.4); SK.lightPole(B, -7.6, -8.2, 8, -0.4);
+    B.cyl(MK.red(), 0.1, 0.1, 0.9, 6.6, PAD + 0.45, 3.5, 0, 0, 0, 14); B.cylX(MK.red(), 0.05, 0.4, 6.6, PAD + 0.7, 3.5, 10); B.rod(MK.red(), [6.6, PAD + 0.9, 3.5], [6.4, PAD + 1.3, 3.1], 0.035, 10);
+    SK.sign(-3.5, 2.3, 4.15, 0, 1.5, 1.1, function (g, w, h) {
+      g.fillStyle = '#f2c500'; g.fillRect(0, 0, w, h); g.strokeStyle = '#111'; g.lineWidth = 10; g.strokeRect(8, 8, w - 16, h - 16);
+      g.fillStyle = '#111'; g.beginPath(); g.moveTo(w * 0.5, 40); g.lineTo(w * 0.5 + 95, 200); g.lineTo(w * 0.5 - 95, 200); g.closePath(); g.fill(); g.fillStyle = '#f2c500'; g.font = 'bold 80px sans-serif'; g.textAlign = 'center'; g.fillText('Ex', w * 0.5, 185);
+      g.fillStyle = '#111'; g.font = 'bold 40px sans-serif'; g.fillText('AREA BERBAHAYA', w * 0.5, 270); g.font = 'bold 30px sans-serif'; g.fillText('ZONA 1 / 2 · DILARANG API & HP', w * 0.5, 320);
+    }, true);
+    SK.human(B, -10.2, 3.6, 2.6, { suit: 0x1f4e8c, hat: 0xf5f5f0, pose: 'tablet' });
+    SK.human(B, -7.0, 8.9, -1.4, { suit: 0xd9531e, hat: 0xf2c200 });
+    B.build();
+    /* ---- zona */
     scn.z1 = new T.Mesh(new T.SphereGeometry(1, 32, 20), mZ1); scn.z1.scale.set(3.4, 2.1, 2.7); scn.z1.position.set(2.2, 1.35, 0.1); TW.add(scn.z1);
     scn.z2 = new T.Mesh(new T.SphereGeometry(1, 32, 20), mZ2); scn.z2.scale.set(6.2, 3.0, 5.2); scn.z2.position.set(2.2, 1.35, 0.1); TW.add(scn.z2);
-    scn.zoneLbls = [TW.label('ZONA 1', scn.z1, { off: [0, 2.4, 0], cls: 'warn', group: 'zone' }), TW.label('ZONA 2', scn.z2, { off: [3.6, 0.5, 0], cls: 'ok', group: 'zone' }), TW.label('ZONA 0 (dalam bejana)', scn.z0, { off: [0, -0.1, 1.3], cls: 'bad', group: 'zone' })];
+    scn.zoneLbls = [TW.label('ZONA 1', scn.z1, { off: [0, 2.4, 0], cls: 'warn', group: 'zone' }), TW.label('ZONA 2', scn.z2, { off: [3.6, 0.5, 0], cls: 'ok', group: 'zone' }), TW.label('ZONA 0 (dalam bejana)', scn.z0, { off: [0, 0, VR + 0.4], cls: 'bad', group: 'zone' })];
+    TW.label('F-201 &middot; flange (sumber kebocoran)', LEAK, { off: [-0.2, 0.3, 0], group: 'eq', maxD: 16 });
   }
 
-  /* ---------------------------------------------------- instrumen (hero) */
+  /* ---------------------------------------------- transmitter (hero, bisa gagal) */
   function buildInstrument(type) {
     if (INS) { TW.remove(INS.g); TW.dispose(INS.g); INS.labels.forEach(function (l) { l.remove(); }); }
     var C = INSTR[type], g = new T.Group(); g.position.copy(P_INS); TW.add(g);
-    var housing = M.shell(C.color, type === 'exdB' || type === 'exdC' ? 0.35 : 0.5, 0.42); TW.shellDouble(housing);
+    var K = 1.4, exd = type === 'exdB' || type === 'exdC';
+    var col = { nonex: 0xc9ccce, exec: 0x7f8a94, exdB: 0x3a4a5c, exdC: 0x3a4a5c, exia: 0x1f64b0 }[type];
+    var housing = TW.shellize(new T.MeshStandardMaterial({ color: col, map: SK.tex.grime(), roughness: type === 'nonex' ? 0.6 : 0.42, metalness: type === 'nonex' ? 0.05 : 0.45 }));
+    TW.shellDouble(housing);
     var hot = { g: g, housing: housing, labels: [], type: type, C: C };
-    // manifold + leher
-    put(g, TW.box(0.24, 0.1, 0.13, mSteel), 0, 0.05, 0); put(g, TW.cyl(0.055, 0.055, 0.2, mSteel, 16), 0, 0.2, 0);
-    var ro = 0.15 + (type.indexOf('exd') === 0 ? 0.035 : 0), ri = ro - C.wall, y0 = 0.3, y1 = 0.66;
-    var prof = [[ri, y0], [ro, y0], [ro, y1], [ri, y1], [ri, y0]];
-    var wall = TW.lathe(prof, housing, 40); g.add(wall); hot.wall = wall;
-    put(g, TW.cyl(ro, ro, 0.02, housing, 32), 0, y0 + 0.01, 0);                       // dasar
-    var cover = put(g, TW.cyl(ro * 0.98, ro * 0.98, 0.09, housing, 32), 0, y1 + 0.045, 0); hot.cover = cover;
-    put(g, TW.cyl(0.085, 0.085, 0.012, mGlass, 24), 0, y1 + 0.096, 0);
-    // isi enklosur: PCB, kapasitor, chip, terminal, layar
-    var pcb = put(g, TW.box(0.2, 0.012, 0.2, M.std(0x1c7a3c, 0.2, 0.5)), 0, 0.42, 0); hot.pcb = pcb;
-    [[-0.05, -0.04], [0.02, 0.05], [-0.06, 0.06]].forEach(function (p) { put(g, TW.box(0.05, 0.014, 0.05, mDark), p[0], 0.435, p[1]); });
-    var caps = [put(g, TW.cyl(0.02, 0.02, 0.065, M.std(0x2f6fd6, 0.3, 0.4), 12), 0.05, 0.46, -0.06), put(g, TW.cyl(0.02, 0.02, 0.065, M.std(0x2f6fd6, 0.3, 0.4), 12), 0.09, 0.46, -0.03)]; hot.caps = caps;
-    var tb = put(g, TW.box(0.1, 0.035, 0.05, M.std(0x8a929a, 0.3, 0.5)), 0.06, 0.37, 0.07);
-    for (var i = 0; i < 4; i++) put(g, TW.cyl(0.008, 0.008, 0.02, M.std(0xd7b64a, 0.8, 0.3), 8), 0.03 + i * 0.025, 0.4, 0.07);
-    put(g, TW.box(0.14, 0.02, 0.1, M.std(0x0d1f16, 0.1, 0.5, { emissive: 0x0d6a3a, emissiveIntensity: 0.9 })), 0, 0.58, 0);
-    [0xff5a3c, 0x2f8cff, 0xf2c500, 0x1aff7a].forEach(function (c, k) { var w = TW.rod([0.03 + k * 0.025, 0.4, 0.07], [0.2, 0.42 - k * 0.006, 0.0], 0.005, M.std(c, 0, 0.6), 6); g.add(w); });
-    // gland + konduit + JB
-    var glandMat = type === 'exia' ? M.std(0x2f8cff, 0.4, 0.5) : (type === 'nonex' ? M.std(0x222222, 0.1, 0.7) : M.std(0xc9a227, 0.8, 0.3));
-    put(g, cylX(0.032, 0.09, glandMat, 14), ro + 0.03, 0.42, 0);
-    var jb = put(g, TW.box(0.24, 0.32, 0.16, M.std(C.jb, 0.35, 0.5)), 0.72, 0.42, 0);
-    TW.add(TW.rod([P_INS.x + ro + 0.06, P_INS.y + 0.42, P_INS.z], [P_INS.x + 0.72 - 0.12, P_INS.y + 0.42, P_INS.z], 0.014, glandMat, 8)); hot.conduitAdded = true;
-    // ring flame-path + ulir (Ex d)
-    if (type.indexOf('exd') === 0) {
-      var fp = put(g, TW.torus(ro, 0.009, M.std(0xffd44a, 0.9, 0.2, { emissive: 0x553300, emissiveIntensity: 0.7 })), 0, y1 - 0.005, 0); fp.rotation.x = Math.PI / 2; hot.flamePath = fp;
-      for (var k2 = 0; k2 < 7; k2++) { var th = put(g, TW.torus(ro * 0.985, 0.004, mSteel), 0, y1 - 0.035 + k2 * 0.011 - 0.03, 0); th.rotation.x = Math.PI / 2; }
-      for (var b = 0; b < 8; b++) { var an = b / 8 * Math.PI * 2; put(g, TW.cyl(0.012, 0.012, 0.03, mSteel, 6), Math.cos(an) * (ro - 0.02), y1 + 0.075, Math.sin(an) * (ro - 0.02)); }
-    }
-    if (type === 'exia') put(g, TW.box(0.1, 0.04, 0.05, M.std(0x1f70b8, 0.2, 0.5)), 0.03, 0.34, -0.08);
-    // papan nama
-    var np = TW.plate(0.26, 0.16, function (c, w, h) {
-      c.fillStyle = C.plate; c.fillRect(0, 0, w, h); c.strokeStyle = '#000'; c.lineWidth = 3; c.strokeRect(2, 2, w - 4, h - 4);
-      c.fillStyle = '#000'; c.font = 'bold 15px sans-serif'; c.textAlign = 'left'; c.fillText('PT-201  4–20 mA', 8, 20);
-      c.font = 'bold 17px sans-serif'; c.fillStyle = type === 'nonex' ? '#c00' : '#000'; c.fillText(C.mark.split(' · ')[type === 'nonex' ? 2 : 0] || C.mark, 8, 46);
-      c.font = '13px sans-serif'; c.fillStyle = '#000'; c.fillText(type === 'nonex' ? 'IP66 · CE' : 'IECEx / ATEX · IP66', 8, 68); c.font = 'bold 12px sans-serif'; c.fillText(C.sign, 8, 90);
-      if (type !== 'nonex') { c.beginPath(); c.moveTo(w - 50, 20); c.lineTo(w - 30, 8); c.lineTo(w - 10, 20); c.lineTo(w - 10, 42); c.lineTo(w - 30, 54); c.lineTo(w - 50, 42); c.closePath(); c.fillStyle = '#000'; c.fill(); c.fillStyle = '#ffd400'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center'; c.fillText('Ex', w - 30, 39); }
-    }, 320);
-    np.position.set(0, 0.42, ro + 0.003); np.scale.setScalar(0.85); g.add(np);
-    var pl = new T.PointLight(0xffcc55, 0, 3, 1.5); pl.position.set(0.05, 0.45, 0); g.add(pl); hot.light = pl;
-    hot.labels.push(TW.label('PT-201<small>' + C.short + '</small>', g, { off: [0, 1.15, 0], cls: C.cls, group: 'tag' }));
+    var R = (exd ? 0.066 : 0.056) * K, L = (exd ? 0.15 : 0.13) * K, wall = (exd ? 0.012 : 0.004) * K, cl = (exd ? 0.042 : 0.026) * K;
+    var B = new SK.Batch(), ss = MK.ss();
+    /* manifold 3-valve + flange coplanar + modul sensor */
+    B.at(SK.M4(0, 0, 0, 0, 0, 0, K, K, K), function (b) {
+      b.box(ss, 0.1, 0.05, 0.12, 0, 0.025, 0);
+      [[-1, 0], [1, 0], [0, 1]].forEach(function (q) { var d = new T.Vector3(q[0], 0, q[1]), p0 = new T.Vector3(q[0] * 0.05, 0.025, q[1] * 0.06), p1 = p0.clone().addScaledVector(d, 0.045); b.rod(ss, p0, p1, 0.012, 10); var hd = new T.Vector3(q[1], 0, q[0]); b.rod(MK.red(), p1.clone().addScaledVector(hd, -0.03), p1.clone().addScaledVector(hd, 0.03), 0.005, 6); });
+      b.box(ss, 0.09, 0.03, 0.09, 0, 0.065, 0);
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (q) { b.cyl(MK.dark(), 0.007, 0.007, 0.04, q[0] * 0.035, 0.07, q[1] * 0.035, 0, 0, 0, 6); });
+      b.cyl(ss, 0.047, 0.047, 0.07, 0, 0.115, 0, 0, 0, 0, 24); b.cyl(ss, 0.024, 0.03, 0.035, 0, 0.167, 0, 0, 0, 0, 16);
+    });
+    var yh = 0.185 * K + R;
+    /* housing dua ruang: badan (shell X-ray) + tutup depan (layar) & belakang (terminal) */
+    var bodyProf = [[R - wall, -L / 2], [R, -L / 2], [R, L / 2], [R - wall, L / 2]];
+    var body = new T.Mesh(new T.LatheGeometry(bodyProf.map(function (p) { return new T.Vector2(p[0], p[1]); }), 36), housing); body.rotation.x = Math.PI / 2; body.position.set(0, yh, 0); g.add(body); hot.wall = body;
+    B.add(new T.CylinderGeometry(R - wall, R - wall, wall * 1.5, 32), housing, new T.Matrix4().compose(new T.Vector3(0, yh, 0), new T.Quaternion().setFromEuler(new T.Euler(Math.PI / 2, 0, 0)), new T.Vector3(1, 1, 1)));
+    [-1, 1].forEach(function (sd) {
+      var cz = sd * (L / 2 + cl / 2), rc = R + (exd ? 0.01 : 0.005) * K;
+      B.add(new T.LatheGeometry([[rc - wall, -cl / 2], [rc, -cl / 2], [rc, cl / 2], [0.001, cl / 2]].map(function (p) { return new T.Vector2(p[0], p[1] * sd); }), 36), housing, new T.Matrix4().compose(new T.Vector3(0, yh, cz), new T.Quaternion().setFromEuler(new T.Euler(Math.PI / 2, 0, 0)), new T.Vector3(1, 1, 1)));
+      B.torus(housing, rc + 0.002, 0.004 * K, 0, yh, cz + sd * cl * 0.2, 0, 0, 0, Math.PI * 2, 32);
+      if (exd) { for (var k = 0; k < 7; k++) B.torus(MK.steel(), R - 0.001, 0.0022 * K, 0, yh, sd * (L / 2 - 0.004 - k * 0.0065 * K), 0, 0, 0, Math.PI * 2, 32); B.box(MK.dark(), 0.014 * K, 0.014 * K, 0.014 * K, rc + 0.008, yh - 0.03 * K, cz); }
+    });
+    var zf = L / 2 + cl;
+    B.cylZ(MK.glass(), R * 0.7, 0.002, 0, yh, zf + 0.002, 24);
+    /* bagian dalam: modul elektronik (depan) & blok terminal (belakang) */
+    var pcbM = new T.MeshStandardMaterial({ color: 0x1c7a3c, roughness: 0.5, metalness: 0.2 });
+    B.cylZ(pcbM, R - wall - 0.004, 0.004, 0, yh, L * 0.22, 28); B.cylZ(pcbM, R - wall - 0.004, 0.004, 0, yh, L * 0.02, 28);
+    [[-0.3, 0.25], [0.25, 0.3], [0.1, -0.35], [-0.35, -0.2]].forEach(function (q) { B.box(MK.dark(), 0.022 * K, 0.022 * K, 0.006, q[0] * R, yh + q[1] * R, L * 0.22 - 0.005); });
+    var capM = new T.MeshStandardMaterial({ color: 0x2f6fd6, roughness: 0.4, metalness: 0.3 }); hot.caps = [];
+    [[0.35, -0.1], [0.05, -0.45]].forEach(function (q) { B.cylZ(capM, 0.007 * K, 0.028 * K, q[0] * R, yh + q[1] * R, L * 0.12, 12); });
+    var tbM = new T.MeshStandardMaterial({ color: 0x8a929a, roughness: 0.5, metalness: 0.3 });
+    B.box(tbM, R * 1.1, R * 0.45, 0.02 * K, 0, yh - R * 0.15, -L * 0.28);
+    for (var t = 0; t < 4; t++) B.cylZ(MK.paint(0xd7b64a, 0.3, 0.8), 0.005 * K, 0.012 * K, -R * 0.4 + t * R * 0.27, yh - R * 0.15, -L * 0.28 - 0.014 * K, 8);
+    [0xff5a3c, 0x2f8cff, 0xf2c500, 0x1aff7a].forEach(function (c2, k) { B.tube(new T.MeshStandardMaterial({ color: c2, roughness: 0.6 }), [[-R * 0.4 + k * R * 0.27, yh - R * 0.15, -L * 0.34], [-R * 0.4 + k * R * 0.27, yh - R * 0.55, -L * 0.34], [-R * 0.95, yh - R * 0.35, -L * 0.2]], 0.0022 * K, 0.01); });
+    /* entri kabel (sisi -X) + gland + konduit ke JB */
+    B.cylX(housing, 0.019 * K, 0.035 * K, -(R + 0.012 * K), yh - 0.02 * K, -L * 0.22, 12);
+    var glM = type === 'exia' ? MK.paint(0x2f8cff, 0.4, 0.3) : (type === 'nonex' ? MK.paint(0x2a2a2a, 0.6, 0.1) : MK.paint(0xc9a227, 0.35, 0.8));
+    B.cylX(glM, 0.02 * K, 0.045 * K, -(R + 0.05 * K), yh - 0.02 * K, -L * 0.22, 6);
+    var cabM = MK.paint(type === 'exia' ? 0x2f8cff : 0x1d1d1d, 0.6, 0.1);
+    B.tube(cabM, [[-(R + 0.07 * K), yh - 0.02 * K, -L * 0.22], [-(R + 0.1 * K), yh - 0.02 * K, -L * 0.22], [-0.16, 0.2, -0.14], [0, -0.2, -0.13]], 0.008, 0.05);
+    B.cylX(MK.dark(), 0.02 * K, 0.014, R + 0.01 * K, yh - 0.02 * K, -L * 0.22, 6);
+    /* papan nama di sisi +X */
+    B.build(g);
+    var np = TW.plate(0.1 * K, 0.064 * K, function (c, w, h) {
+      c.fillStyle = C.plate; c.fillRect(0, 0, w, h); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(3, 3, w - 6, h - 6);
+      c.fillStyle = '#000'; c.font = 'bold 26px sans-serif'; c.textAlign = 'left'; c.fillText('PT-201  4–20 mA', 12, 34);
+      c.font = 'bold 30px sans-serif'; c.fillStyle = type === 'nonex' ? '#c00' : '#000'; c.fillText(type === 'nonex' ? 'TANPA Ex' : C.mark.split(' ').slice(0, 2).join(' '), 12, 74);
+      c.fillStyle = '#000'; c.font = 'bold 28px sans-serif'; c.fillText(type === 'nonex' ? 'IP66 · CE' : C.mark.split(' ').slice(2).join(' '), 12, 112); c.font = 'bold 20px sans-serif'; c.fillText(C.sign, 12, 146);
+      if (type !== 'nonex') { c.beginPath(); c.moveTo(w - 80, 40); c.lineTo(w - 48, 20); c.lineTo(w - 16, 40); c.lineTo(w - 16, 76); c.lineTo(w - 48, 96); c.lineTo(w - 80, 76); c.closePath(); c.fillStyle = '#000'; c.fill(); c.fillStyle = '#ffd400'; c.font = 'bold 34px sans-serif'; c.textAlign = 'center'; c.fillText('Ex', w - 48, 70); }
+    }, 512);
+    np.rotation.y = Math.PI / 2; np.position.set(R + (exd ? 0.012 : 0.004) * K, yh, 0.012); g.add(np);
+    /* LCD */
+    var lcdC = document.createElement('canvas'); lcdC.width = 128; lcdC.height = 64; var lcdT = new T.CanvasTexture(lcdC); lcdT.encoding = T.sRGBEncoding;
+    var lcd = new T.Mesh(new T.CircleGeometry(R * 0.62, 28), new T.MeshBasicMaterial({ map: lcdT, toneMapped: false })); lcd.position.set(0, yh, zf + 0.0008); g.add(lcd);
+    hot.setLCD = function (txt, sub, bg) { var c = lcdC.getContext('2d'); c.fillStyle = bg || '#a9c7a6'; c.fillRect(0, 0, 128, 64); c.fillStyle = '#111'; c.font = 'bold 26px monospace'; c.textAlign = 'center'; c.fillText(txt, 64, 34); c.font = '13px monospace'; c.fillText(sub || '', 64, 54); lcdT.needsUpdate = true; };
+    hot.setLCD('12.4', 'bar g');
+    if (exd) { var fp = new T.Mesh(new T.TorusGeometry(R + 0.001, 0.003 * K, 8, 40), new T.MeshStandardMaterial({ color: 0xffd44a, emissive: 0x553300, emissiveIntensity: 0.7, metalness: 0.9, roughness: 0.2 })); fp.position.set(0, yh, L / 2 + 0.002); g.add(fp); hot.flamePath = fp; }
+    var pl = new T.PointLight(0xffcc55, 0, 2.5, 1.5); pl.position.set(0, yh, 0); g.add(pl); hot.light = pl;
+    hot.labels.push(TW.label('PT-201<small>' + C.short + '</small>', g, { off: [0, 0.62, 0], cls: C.cls, group: 'tag' }));
     TW.pickable(g, function () { });
-    g.updateMatrixWorld(true); hot.spark = new T.Vector3(0.09, 0.4, 0.07).applyMatrix4(g.matrixWorld); hot.center = INS_C.clone(); hot.ringPos = new T.Vector3(0, y1, 0).applyMatrix4(g.matrixWorld); hot.ro = ro;
+    g.updateMatrixWorld(true);
+    hot.spark = new T.Vector3(0, yh - R * 0.15, -L * 0.28 - 0.014 * K).applyMatrix4(g.matrixWorld);
+    hot.center = new T.Vector3(0, yh, 0).applyMatrix4(g.matrixWorld); INS_C.copy(hot.center);
+    hot.ringPos = new T.Vector3(0, yh, L / 2 + 0.002).applyMatrix4(g.matrixWorld); hot.ro = R; hot.ringU = new T.Vector3(1, 0, 0); hot.ringV = new T.Vector3(0, 1, 0); hot.ringN = new T.Vector3(0, 0, 1);
     INS = hot;
-    // kabel ke barrier
+    /* kabel dari JB ke kabinet (warna biru = kabel IS) */
     if (scn.cable) { TW.remove(scn.cable.group); TW.dispose(scn.cable.group); }
-    scn.cable = TW.pipe([[-4.9, 0.7, 3.9], [-4.9, 0.06, 3.9], [3.64, 0.06, 3.9], [3.64, 0.06, 0.35], [3.64, 0.3, 0.35]], 0.018, { mat: M.std(type === 'exia' ? 0x2f8cff : 0x1a1a1a, 0.2, 0.6), bend: 0.2 }); TW.add(scn.cable.group);
+    scn.cable = TW.pipe([[2.95, 0.49, 0.22], [2.95, PAD + 0.06, 0.22], [2.95, PAD + 0.06, 3.9], [-7.4, PAD + 0.06, 3.9], [-7.4, 0.07, 8.7], [-7.75, 0.07, 8.7], [-7.75, 0.6, 8.7]], 0.014, { mat: MK.paint(type === 'exia' ? 0x2f8cff : 0x1a1a1a, 0.6, 0.1), bend: 0.12 }); TW.add(scn.cable.group);
     scn.barLbl.set(type === 'exia' ? 'BARRIER Ex ia<small>Zener / isolator galvanik</small>' : 'Catu daya 24 VDC (non-IS)', type === 'exia' ? 'ok' : '');
     scn.barLed.material.emissive.set(type === 'exia' ? 0x1aff7a : 0x2f8cff);
     scn.cabinet.visible = true;
@@ -258,15 +362,16 @@ var HZ = (function () {
     for (var i = 0; i < n; i++) TW.fx.fireSys.emit(INS.spark.x + TW.rand(-0.03, 0.03), INS.spark.y + TW.rand(-0.02, 0.04), INS.spark.z + TW.rand(-0.03, 0.03), TW.rand(-0.8, 0.8), TW.rand(-0.2, 1.0), TW.rand(-0.8, 0.8), TW.rand(0.15, 0.45), size, size * 0.4, [1, 0.9, 0.5, 1], [1, 0.4, 0.1, 0], 2, -2);
   }
   function internalFlash(escape) {
-    var ctr = new T.Vector3(0, 0.47, 0).applyMatrix4(INS.g.matrixWorld);
-    for (var i = 0; i < 46; i++) TW.fx.fireSys.emit(ctr.x + TW.rand(-0.04, 0.04), ctr.y + TW.rand(-0.06, 0.06), ctr.z + TW.rand(-0.04, 0.04), TW.rand(-1, 1), TW.rand(-0.4, 1), TW.rand(-1, 1), TW.rand(0.25, 0.55), 0.13, 0.22, [1, 0.92, 0.55, 0.95], [1, 0.3, 0.05, 0], 3, 0);
+    var ctr = INS.center;
+    for (var i = 0; i < 46; i++) TW.fx.fireSys.emit(ctr.x + TW.rand(-0.04, 0.04), ctr.y + TW.rand(-0.04, 0.04), ctr.z + TW.rand(-0.06, 0.06), TW.rand(-1, 1), TW.rand(-0.4, 1), TW.rand(-1, 1), TW.rand(0.25, 0.55), 0.07, 0.12, [1, 0.92, 0.55, 0.95], [1, 0.3, 0.05, 0], 3, 0);
     INS.light.intensity = 6; INS.flash = 0.5;
     INS.pulse = 0.5;
-    var rp = INS.ringPos;
-    for (var j = 0; j < 40; j++) {
-      var a = Math.random() * Math.PI * 2, r = INS.ro;
-      if (escape) TW.fx.fireSys.emit(rp.x + Math.cos(a) * r, rp.y, rp.z + Math.sin(a) * r, Math.cos(a) * TW.rand(2, 4), TW.rand(0, 1.2), Math.sin(a) * TW.rand(2, 4), TW.rand(0.3, 0.7), 0.1, 0.35, [1, 0.8, 0.35, 0.95], [1, 0.25, 0.05, 0], 1, 0);
-      else TW.fx.fireSys.emit(rp.x + Math.cos(a) * (r - 0.02), rp.y - 0.01, rp.z + Math.sin(a) * (r - 0.02), Math.cos(a) * 0.35, 0.05, Math.sin(a) * 0.35, TW.rand(0.3, 0.6), 0.05, 0.02, [1, 0.85, 0.4, 0.95], [0.25, 0.3, 0.4, 0], 3, 0);
+    var rp = INS.ringPos, U = INS.ringU, V = INS.ringV, N = INS.ringN;
+    for (var j = 0; j < 44; j++) {
+      var a = Math.random() * Math.PI * 2, r = INS.ro, cx = Math.cos(a), sy = Math.sin(a);
+      var px = rp.x + (U.x * cx + V.x * sy) * r, py = rp.y + (U.y * cx + V.y * sy) * r, pz = rp.z + (U.z * cx + V.z * sy) * r;
+      if (escape) { var sp = TW.rand(2, 4); TW.fx.fireSys.emit(px, py, pz, (U.x * cx + V.x * sy) * sp + N.x * 1.5, (U.y * cx + V.y * sy) * sp + TW.rand(0, 1.2), (U.z * cx + V.z * sy) * sp + N.z * 1.5, TW.rand(0.3, 0.7), 0.1, 0.35, [1, 0.8, 0.35, 0.95], [1, 0.25, 0.05, 0], 1, 0); }
+      else TW.fx.fireSys.emit(px, py, pz, (U.x * cx + V.x * sy) * 0.3 + N.x * 0.2, (U.y * cx + V.y * sy) * 0.3, (U.z * cx + V.z * sy) * 0.3 + N.z * 0.2, TW.rand(0.3, 0.6), 0.04, 0.02, [1, 0.85, 0.4, 0.95], [0.25, 0.3, 0.4, 0], 3, 0);
     }
   }
   function safeEvent() {
@@ -311,15 +416,15 @@ var HZ = (function () {
     log('Flash fire menjalar melalui awan (' + idc(mFlam * 1000, 0) + ' g gas dalam rentang mudah terbakar)' + (S.vce ? ' &mdash; pipa/rack padat memicu ledakan awan uap (VCE)' : '') + '.', 'bad');
     charInstrument();
     $('redalert').style.transition = 'opacity .3s'; S.alert = true;
-    TW.flyTo([10.5, 6.6, 16.5], [2.2, 2.2, -0.3], 1.8);
+    TW.flyTo([11.5, 7.8, 18.5], [2.5, 2.6, -1.5], 1.8);
     showBanner('bad', 'KEBAKARAN HEBAT &mdash; INSTRUMEN SUMBER NYALA', 'Awan gas menyala; api menjalar ke flange, bejana dan tangki. ESD &amp; evakuasi!');
   }
   function charInstrument() { INS.housing.color.set(0x111111); INS.housing.emissive.set(0x300800); INS.g.children.forEach(function (c) { if (c.material && c.material.color && !c.material.userData.shell && c.material !== INS.housing) c.material = c.material.clone(), c.material.color.multiplyScalar(0.25); }); S.dmg.pt = 1; }
   function rupture() {
     S.ruptured = true; scn.ves.visible = false; scn.z0.visible = false;
-    TW.fx.blast([VES.x, VES.y + 0.5, 0], 7.5); TW.fx.scorch([VES.x, 0, 0], 6);
+    TW.fx.blast([VES.x, VES.y + 0.5, VES.z], 7.5); TW.fx.scorch([VES.x, 0, VES.z], 6);
     vesFire.k = 1; S.domT = 0; S.dmg.ves = 1;
-    TW.flyTo([9.5, 5.5, 14.5], [1.5, 2.5, -0.5], 1.6);
+    TW.flyTo([9.5, 8.5, 21], [2.5, 2.8, -2.5], 1.6);
     log('BEJANA V-201 PECAH (BLEVE): dinding melemah oleh api &rarr; bola api besar, pecahan terlempar.', 'bad');
     showBanner('bad', 'BEJANA V-201 MELEDAK (BLEVE)', 'Bola api, gelombang tekan, dan pecahan &mdash; api menjalar ke tangki T-202 (domino).');
   }
@@ -334,7 +439,7 @@ var HZ = (function () {
     burn.length = 0; gas.clear(); TW.fx.reset(); jet.k = vesFire.k = tankFire.k = 0; flare.k = 0.22;
     scn.ves.visible = true; scn.z0.visible = true; scn.tank.visible = true; TW.heat(scn.vesMat, 0); scn.vesMat.color.copy(scn.vesMat.userData.base); TW.heat(scn.tankMat, 0); scn.tankMat.color.copy(scn.tankMat.userData.base); scn.pipeMat.color.copy(scn.pipeMat.userData.base); TW.heat(scn.pipeMat, 0);
     buildInstrument(CFG.inst); $('banner').className = 'banner'; $('redalert').style.opacity = 0; $('k-esd').textContent = 'siaga'; $('k-esd').className = '';
-    setState('NORMAL', ''); $('res-panel').className = 'panel'; renderResult(); renderCompat(); drawEnergy(); renderInfo(); if (wasFire) TW.flyTo([8.5, 6.2, 18.5], [1.0, 1.8, 0], 1.2);
+    setState('NORMAL', ''); $('res-panel').className = 'panel'; renderResult(); renderCompat(); drawEnergy(); renderInfo(); if (wasFire) TW.flyTo([10.5, 7.5, 19.5], [1.5, 1.8, -1.5], 1.2);
   }
 
   /* ------------------------------------------------------------------ UI */
@@ -427,12 +532,14 @@ var HZ = (function () {
     var bz = $('btn-zone'), bc = $('btn-cloud');
     bz.onclick = function () { CFG.zones = !CFG.zones; bz.classList.toggle('active', CFG.zones); }; bc.onclick = function () { CFG.cloud = !CFG.cloud; bc.classList.toggle('active', CFG.cloud); };
     TW.camButtons('cam-btns', [
-      { name: 'OVERVIEW', pos: [8.5, 6.2, 18.5], tgt: [1.0, 1.8, 0] },
-      { name: 'INSTRUMEN', pos: [3.75, 1.85, 1.55], tgt: [2.95, 1.35, 0.35] },
-      { name: 'FLANGE + AWAN', pos: [5.6, 2.4, 3.6], tgt: [2.6, 1.3, 0.2] },
-      { name: 'BEJANA V-201', pos: [-2.2, 3.4, 7.2], tgt: [-1.8, 1.6, 0] },
-      { name: 'ATAS &middot; ZONA', pos: [2.4, 15.5, 4.6], tgt: [2.2, 0, 0.3] },
-      { name: 'TANGKI T-202', pos: [11.5, 5, 6], tgt: [7, 2.4, -1.2] }
+      { name: 'OVERVIEW', pos: [10.5, 7.5, 19.5], tgt: [1.5, 1.8, -1.5] },
+      { name: 'INSTRUMEN', pos: [3.62, 1.55, 1.2], tgt: [2.95, 1.25, 0.33] },
+      { name: 'FLANGE + AWAN', pos: [5.8, 2.6, 4.4], tgt: [2.4, 1.3, 0.1] },
+      { name: 'BEJANA V-201', pos: [-7.8, 4.8, -10.2], tgt: [-1.0, 2.0, -3.3] },
+      { name: 'ATAS &middot; ZONA', pos: [2.4, 18, 5.5], tgt: [2.2, 0, 0.0] },
+      { name: 'TANGKI T-202', pos: [17, 6.5, 7], tgt: [10, 3, -2.4] },
+      { name: 'AREA AMAN', pos: [-1.5, 3.8, 15.5], tgt: [-9.5, 1.6, 7] },
+      { name: 'RACK &amp; FLARE', pos: [-3, 9, 14], tgt: [-10, 6, -6] }
     ]);
     Array.prototype.forEach.call($('cam-btns').children, function (b) { b.innerHTML = b.textContent; });
   }
@@ -488,7 +595,7 @@ var HZ = (function () {
         TW.heat(scn.vesMat, Math.max(0, (S.H - 0.25) / 0.75)); scn.vesMat.color.copy(scn.vesMat.userData.base).lerp(new T.Color(0x1a1512), Math.min(1, S.H * 0.9));
         TW.heat(scn.pipeMat, Math.max(0, (S.H - 0.15) / 0.85));
         if (S.H > 0.55 && vesFire.k < 0.5) vesFire.k = Math.min(0.5, (S.H - 0.55) * 1.4);
-        vesFire.pos.set(VES.x + 0.6, 2.8, 0); vesFire.size = 1.1;
+        vesFire.pos.set(VES.x + 1.6, VES.y + VR, VES.z + 0.4); vesFire.size = 1.1;
         if (S.H >= 1) rupture();
       } else {
         S.flux = 30 + 220 * Math.max(0, 1 - (S.domT || 0) / 10);
@@ -499,7 +606,7 @@ var HZ = (function () {
           TW.heat(scn.tankMat, Math.min(1, (S.domT - 3) / 14));
           if (S.domT > 17 && !S.tankBlast) tankBlast();
         }
-        vesFire.pos.set(VES.x, 1.0, 0); vesFire.size = 2.3; vesFire.k = Math.min(1, vesFire.k + dt);
+        vesFire.pos.set(VES.x, 1.0, VES.z); vesFire.size = 2.3; vesFire.k = Math.min(1, vesFire.k + dt);
       }
       if (S.alert) $('redalert').style.opacity = 0.55 + 0.4 * Math.sin(TW.time() * 6);
     }
@@ -514,15 +621,16 @@ var HZ = (function () {
   }
 
   HZ.start = function () {
-    TW.init({ bg: 0x101a25, fog: { color: 0x101a25, near: 40, far: 110 }, cam: [8.5, 6.2, 18.5], target: [1.0, 1.8, 0], shadowSize: 15, exposure: 1.05, maxDist: 60 });
-    mZ2 = M.glow(0x2aff88, 0.06); mZ1 = M.glow(0xffd400, 0.09); mZ0 = M.glow(0xff3040, 0.12);
+    TW.init({ bg: 0xcfdde8, sky: { sunDir: [0.45, 0.8, 0.6], cloud: 0.55 }, sunDir: [0.45, 0.8, 0.6], fog: { color: 0xcfdde8, near: 60, far: 430 }, cam: [10.5, 7.5, 19.5], target: [1.5, 1.8, -1.5], shadowSize: 19, shadowCenter: [0, 0, -2], exposure: 1.0, maxDist: 90 });
+    mZ2 = M.glow(0x2aff88, 0.07); mZ1 = M.glow(0xffc400, 0.1); mZ0 = M.glow(0xff3040, 0.14);
     [mZ2, mZ1, mZ0].forEach(function (m) { m.side = T.DoubleSide; });
     buildPlant();
     gas = new TW.PSys(760, 'puff', false); pm = new Float32Array(gas.n);
     jet = TW.fx.fire([LEAK.x, LEAK.y, LEAK.z], { size: 1, rate: 150, speed: 3.2, spread: 0.32, smoke: 0.35 });
-    vesFire = TW.fx.fire([VES.x, 1.0, 0], { size: 1.6, rate: 120, speed: 2.6, spread: 0.6, smoke: 0.3 });
+    vesFire = TW.fx.fire([VES.x, 1.0, VES.z], { size: 1.6, rate: 120, speed: 2.6, spread: 0.6, smoke: 0.3 });
     tankFire = TW.fx.fire([TANK.x, TANK.y + 1.2, TANK.z], { size: 1.4, rate: 120, speed: 2.6, spread: 0.6, smoke: 0.3 });
     buildInstrument(CFG.inst); wireUI(); buildCards(); renderCompat(); renderInfo(); drawEnergy(); renderResult();
+    TW.ics({ title: '3D TWIN · INSTRUMENT AREA BERBAHAYA (Ex / ATEX)', extra: 'Skenario kebakaran &amp; ledakan hanya <b>simulasi visual</b> untuk memahami pentingnya proteksi Ex; jangan dicoba di lapangan.' });
     TW.onUpdate(frame); TW.start();
   };
   HZ.S = S; HZ.CFG = CFG; HZ.api = { frame: frame, startLeak: startLeak, failInstrument: failInstrument, reset: reset, doEsd: doEsd, setInst: function (k) { CFG.inst = k; buildCards(); reset(); }, setGas: function (k) { CFG.gas = k; $('sel-gas').value = k; reset(); }, concAt: function () { return concAt(INS.center); } };
