@@ -1528,6 +1528,7 @@ window.PK = (function () {
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   };
+  PK.S = S;
   PK.onFrame = function (fn) { frameFns.push(fn); return fn; };
 
   /* ---------------- init ---------------- */
@@ -1542,7 +1543,7 @@ window.PK = (function () {
 
     var w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
     var renderer = new T.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(1);
     renderer.setSize(w, h);
     renderer.outputEncoding = T.sRGBEncoding;
     renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -1594,6 +1595,74 @@ window.PK = (function () {
     var rim = new T.PointLight(0x4fe3ff, 0.55, 18, 2);
     rim.position.set(-3, 6, -6);
     scene.add(rim);
+
+
+    /* ---- kualitas adaptif (GPU terintegrasi / laptop) ----
+       0 = tinggi, 1 = sedang, 2 = rendah, 3 = hemat. Turun otomatis bila FPS < 38.
+       Paksa manual: ?q=high|med|low|eco di URL, atau tombol Q (siklus). */
+    var QN = ['TINGGI', 'SEDANG', 'RENDAH', 'HEMAT'];
+    var dprMax = Math.min(window.devicePixelRatio || 1, 2);
+    var weak = false;
+    try {
+      var gl0 = renderer.getContext(), ext = gl0.getExtension('WEBGL_debug_renderer_info');
+      var gpuName = ext ? String(gl0.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+      S.gpu = gpuName;
+      weak = /intel|uhd|iris|hd graphics|mali|adreno|powervr|apple gpu|swiftshader|llvmpipe|software|microsoft basic/i.test(gpuName) ||
+        (gl0.getParameter(gl0.MAX_TEXTURE_SIZE) < 8192);
+    } catch (e0) { /* abaikan */ }
+    var qLevels = [
+      { dpr: Math.min(dprMax, 1.5), shadow: 2048, type: T.PCFSoftShadowMap, on: true },
+      { dpr: 1, shadow: 1024, type: T.PCFShadowMap, on: true },
+      { dpr: 0.85, shadow: 512, type: T.PCFShadowMap, on: true },
+      { dpr: 0.65, shadow: 512, type: T.PCFShadowMap, on: false }
+    ];
+    var forced = null;
+    try {
+      var qp = (new URLSearchParams(location.search).get('q') || '').toLowerCase();
+      forced = { high: 0, tinggi: 0, med: 1, sedang: 1, low: 2, rendah: 2, eco: 3, hemat: 3 }[qp];
+      if (forced === undefined) forced = null;
+    } catch (e1) { /* abaikan */ }
+    S.quality = 0;
+    S.setQuality = function (q, silent) {
+      q = Math.max(0, Math.min(3, q));
+      var L = qLevels[q];
+      S.quality = q;
+      renderer.setPixelRatio(L.dpr);
+      renderer.setSize(host.clientWidth || window.innerWidth, host.clientHeight || window.innerHeight);
+      if (key.shadow.mapSize.x !== L.shadow || renderer.shadowMap.type !== L.type) {
+        if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; }
+        key.shadow.mapSize.set(L.shadow, L.shadow);
+        if (renderer.shadowMap.type !== L.type) {
+          renderer.shadowMap.type = L.type;
+          scene.traverse(function (o) {
+            var ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+            for (var i = 0; i < ms.length; i++) ms[i].needsUpdate = true;
+          });
+        }
+      }
+      key.castShadow = L.on;
+      if (!silent) PK.toast('Kualitas grafis: ' + QN[q] + (q === S.autoQ ? ' (otomatis)' : ''));
+    };
+    S.autoQ = -1;
+    var gv = { n: 0, sum: 0, hold: 3.0, last: 0 };
+    S.govern = function (rawDt) {
+      if (forced !== null || document.hidden) { gv.n = 0; gv.sum = 0; return; }
+      if (rawDt > 0.5) { return; } /* tab baru aktif / jeda: abaikan */
+      if (gv.hold > 0) { gv.hold -= rawDt; return; }
+      gv.n++; gv.sum += rawDt;
+      if (gv.sum >= 1.5) {
+        var fps = gv.n / gv.sum;
+        gv.n = 0; gv.sum = 0;
+        if (fps < 38 && S.quality < 3) {
+          S.autoQ = S.quality + 1;
+          S.setQuality(S.quality + 1);
+          gv.hold = 2.5;
+        }
+      }
+    };
+    S.setQuality(forced !== null ? forced : (weak ? 1 : 0), true);
+    if (forced === null && weak) S.autoQ = -1;
+    S.cycleQuality = function () { forced = null; S.autoQ = -1; S.setQuality((S.quality + 1) % 4); gv.hold = 3; forced = S.quality; };
 
     /* tanah */
     var ground = new T.Mesh(new T.CircleGeometry(40, 72), new T.MeshStandardMaterial({ color: 0x08121c, roughness: 0.95, metalness: 0, envMapIntensity: 0.08 }));
@@ -2143,13 +2212,26 @@ window.PK = (function () {
     S.controls.update();
   };
 
+  /* notifikasi kecil di atas kanvas */
+  var toastEl = null, toastTm = 0;
+  PK.toast = function (msg) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.style.cssText = 'position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:30;padding:7px 14px;border:1px solid rgba(79,227,255,.5);background:rgba(7,18,28,.9);color:#bff4ff;font:600 12px/1.2 "JetBrains Mono",monospace;letter-spacing:.06em;border-radius:6px;pointer-events:none;transition:opacity .3s;opacity:0';
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = msg; toastEl.style.opacity = '1';
+    clearTimeout(toastTm); toastTm = setTimeout(function () { toastEl.style.opacity = '0'; }, 2200);
+  };
+
   /* ---------------- loop ---------------- */
   var failed = new WeakSet();
   PK.start = function () {
     var clock = new T.Clock();
     (function loop() {
       S.raf = requestAnimationFrame(loop);
-      var dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+      var rawDt = clock.getDelta(), dt = Math.min(rawDt, 0.1), t = clock.elapsedTime;
+      if (S.govern) S.govern(rawDt);
       stepTween(dt);
       for (var i = 0; i < frameFns.length; i++) {
         var f = frameFns[i];
@@ -3121,6 +3203,7 @@ window.LK = (function () {
       if (k === 'x' || k === 'X') { LK.setXray(!LK.xray); e.preventDefault(); }
       else if (k === 'l' || k === 'L') { LK.setLabels(!PK.labelsOn); e.preventDefault(); }
       else if (k === ' ' || k === 'Spacebar') { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); LK.toggleAuto(); e.preventDefault(); }
+      else if (k === 'q' || k === 'Q') { if (PK.S && PK.S.cycleQuality) PK.S.cycleQuality(); }
       else if (k === 'ArrowUp') { LK.setTarget(Math.round(P.target / 5) * 5 + 5); e.preventDefault(); }
       else if (k === 'ArrowDown') { LK.setTarget(Math.round(P.target / 5) * 5 - 5); e.preventDefault(); }
     });
