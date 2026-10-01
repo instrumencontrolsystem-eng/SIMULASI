@@ -338,6 +338,82 @@ select option { background: #0a1622; color: var(--txt); }
 }
 @media (max-height: 640px) and (min-width: 801px) { #mth-list { max-height: 160px; } }
 @media (prefers-reduced-motion: reduce) { .btn, .mi, .sw i, .sw i::after { transition: none; } }
+
+/* =====================================================================
+   MODE STARTUP / COMMISSIONING (panel DCS, status bar, faceplate)
+   ===================================================================== */
+body.u-on .m-only { display: none !important; }
+.u-mnote { font-size: 12.5px; color: var(--dim); margin-top: 9px; line-height: 1.4; }
+.u-mnote b { color: var(--cy); font-weight: 600; }
+.u-clk { margin-left: auto; font-family: var(--f-mono); letter-spacing: 0; color: var(--am); font-size: 12px; font-weight: 600; }
+.u-phase {
+  font-family: var(--f-head); font-size: 10.5px; letter-spacing: .08em; line-height: 1.5; color: var(--dim);
+  border: 1px solid var(--line2); background: rgba(79, 227, 255, .05); padding: 7px 10px; border-radius: 5px; margin-bottom: 8px;
+}
+.u-phase.run { color: var(--pu); border-color: rgba(199, 146, 255, .5); background: rgba(199, 146, 255, .08); }
+.u-phase.ok { color: var(--gr); border-color: rgba(125, 255, 176, .5); background: rgba(125, 255, 176, .08); }
+.u-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.u-btns .btn { padding: 8px 4px; }
+.btn.go { border-color: rgba(125, 255, 176, .6); color: var(--gr); background: rgba(125, 255, 176, .10); }
+.btn.go:hover { background: rgba(125, 255, 176, .2); border-color: var(--gr); }
+.btn.red { border-color: rgba(255, 107, 107, .65); color: #ff9d9d; background: rgba(255, 107, 107, .10); }
+.btn.red:hover { background: rgba(255, 107, 107, .22); border-color: var(--rd); }
+.btn.sm { padding: 3px 7px; font-size: 9.5px; letter-spacing: .04em; min-width: 30px; }
+.u-seq { list-style: none; margin: 0 0 8px; padding: 0; counter-reset: us; }
+.u-seq li { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 1.3; color: var(--dim); padding: 3px 0; }
+.u-seq li i {
+  flex: none; width: 13px; height: 13px; margin-top: 2px; border-radius: 50%; border: 1.5px solid rgba(138, 161, 182, .5); position: relative;
+}
+.u-seq li.act { color: #fff; }
+.u-seq li.act i { border-color: var(--pu); box-shadow: 0 0 8px var(--pu); animation: upulse 1.1s ease-in-out infinite; }
+.u-seq li.done { color: #9fc6b4; }
+.u-seq li.done i { background: var(--gr); border-color: var(--gr); }
+.u-seq li.done i::after { content: ''; position: absolute; left: 3.5px; top: 1px; width: 3px; height: 6px; border: solid #04120b; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); }
+@keyframes upulse { 50% { box-shadow: 0 0 2px var(--pu); } }
+.u-speed { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--dim); margin: 6px 0 4px; }
+.u-speed > div { display: flex; gap: 4px; flex-wrap: wrap; }
+.u-sub {
+  font-family: var(--f-head); font-size: 9.5px; letter-spacing: .16em; color: var(--cy); margin: 12px 0 5px; padding-top: 8px; border-top: 1px solid var(--line2);
+}
+.u-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.u-tbl td { padding: 3px 4px; border-bottom: 1px solid rgba(79, 227, 255, .07); vertical-align: middle; }
+.u-tbl td.tg { font-family: var(--f-mono); font-size: 11px; color: var(--cy); white-space: nowrap; }
+.u-tbl td.tg small { display: block; color: var(--dim); font-family: var(--f-body); font-size: 10.5px; }
+.u-tbl td.v { font-family: var(--f-mono); font-weight: 600; color: var(--gr); text-align: right; white-space: nowrap; }
+.u-tbl td.v.warn { color: var(--am); }
+.u-tbl td.v.bad { color: var(--rd); }
+.u-tbl td.un { color: var(--dim); font-size: 11px; padding-left: 2px; }
+.u-tbl td.am { text-align: right; white-space: nowrap; }
+.u-tbl td.am .btn { margin-left: 3px; }
+.u-ctl tr.hd td { font-family: var(--f-head); font-size: 8.5px; letter-spacing: .1em; color: var(--dim); }
+.u-in {
+  width: 62px; background: rgba(4, 12, 20, .9); color: var(--txt); border: 1px solid var(--line); border-radius: 4px;
+  font: 600 12px var(--f-mono); padding: 3px 4px; text-align: right;
+}
+.u-in:disabled, .u-in.auto { color: var(--dim); border-color: var(--line2); background: rgba(4, 12, 20, .5); }
+.u-al { display: flex; gap: 5px; flex-wrap: wrap; min-height: 22px; }
+.u-al .chip { font-family: var(--f-mono); font-size: 10.5px; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+.u-al .chip.warn { color: var(--am); border-color: rgba(255, 210, 127, .6); background: rgba(255, 210, 127, .1); }
+.u-al .chip.bad { color: #ff9d9d; border-color: rgba(255, 107, 107, .7); background: rgba(255, 107, 107, .14); animation: upulse 1s ease-in-out infinite; }
+.u-none { color: var(--dim); font-size: 12px; }
+.u-log { max-height: 190px; overflow-y: auto; font-size: 12px; line-height: 1.35; }
+.u-log div { padding: 2px 0; border-bottom: 1px solid rgba(79, 227, 255, .06); color: var(--txt); }
+.u-log b { font-family: var(--f-mono); font-weight: 500; color: var(--dim); margin-right: 5px; font-size: 11px; }
+.u-log .bad { color: #ff9d9d; }
+.u-log .warn { color: var(--am); }
+.u-log .ok { color: var(--gr); }
+.u-log .seq { color: var(--pu); }
+#u-bar {
+  position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 12; width: max-content; max-width: calc(100% - 16px);
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;
+  padding: 6px 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(4, 10, 16, .94);
+  font-size: 12.5px; color: var(--dim); white-space: nowrap; pointer-events: none;
+}
+#u-bar b { font-family: var(--f-head); font-size: 10.5px; letter-spacing: .1em; color: var(--pu); }
+#u-bar i { font-style: normal; font-family: var(--f-mono); font-weight: 600; color: var(--gr); }
+#u-bar .dim { color: var(--dim); font-family: var(--f-mono); font-size: 11px; }
+@media (max-width: 1240px) { #u-bar { gap: 9px; font-size: 11.5px; padding: 5px 9px; } }
+@media (max-width: 800px) { #u-bar { display: none !important; } }
 </style>
 <script>
 /**
@@ -2407,8 +2483,13 @@ window.LK = (function () {
     P.vapN = f.vap(Tc);
     P.vapor = clamp((c.vapor || 0) / 100 + P.vapN, 0, 1);
     P.foam = (c.foam || 0) / 100;
-    P.press = c.press || 0;
-    P.waveAmp = 0.0015 + (c.turb || 0) / 200 + 0.004 * Math.abs(P.flow);
+    if (LK.U && LK.U.on) {
+      P.press = LK.U.pressBarg() + (c.press || 0);
+      P.waveAmp = 0.0015 + (c.turb || 0) / 200 + LK.U.wave();
+    } else {
+      P.press = c.press || 0;
+      P.waveAmp = 0.0015 + (c.turb || 0) / 200 + 0.004 * Math.abs(P.flow);
+    }
   }
 
   /* ---------- utilitas untuk metode ---------- */
@@ -2652,20 +2733,25 @@ window.LK = (function () {
         vp.dirty();
       }
       /* semburan masuk, aliran, katup, pompa */
-      var filling = P.flow > 0.03, drain = P.flow < -0.03;
-      var jy = Y0 + 3.7, jl = Math.max(0.001, jy - yS);
-      jet.visible = filling && jl > 0.02;
-      if (jet.visible) { jet.scale.set(1, jl, 1); jet.position.set(o.jet.x, yS + jl / 2, o.jet.z); jet.material.opacity = 0.25 + 0.45 * P.flow; }
-      o.flows.inFlow.update(dt, Math.max(0, P.flow));
-      o.flows.outFlow.update(dt, Math.max(0, -P.flow));
-      o.flows.disFlow.update(dt, Math.max(0, -P.flow));
-      o.xv.setOpen(filling ? 1 : 0);
-      o.hv.setOpen(1);
-      o.pump.update(dt, drain);
+      var uon = LK.U && LK.U.on;
+      if (uon) LK.U.visual(o, dt, t, yS, jet);
+      else {
+        var filling = P.flow > 0.03, drain = P.flow < -0.03;
+        var jy = Y0 + 3.7, jl = Math.max(0.001, jy - yS);
+        jet.visible = filling && jl > 0.02;
+        if (jet.visible) { jet.scale.set(1, jl, 1); jet.position.set(o.jet.x, yS + jl / 2, o.jet.z); jet.material.opacity = 0.25 + 0.45 * P.flow; }
+        o.flows.inFlow.update(dt, Math.max(0, P.flow));
+        o.flows.outFlow.update(dt, Math.max(0, -P.flow));
+        o.flows.disFlow.update(dt, Math.max(0, -P.flow));
+        o.xv.setOpen(filling ? 1 : 0);
+        o.hv.setOpen(1);
+        o.pump.update(dt, drain);
+        if (LK.U && LK.U.v3) LK.U.visualIdle(dt);
+      }
       /* manometer */
       o.gauge.set(P.press);
       if (!o.piEl) o.piEl = document.getElementById('lk-pi');
-      if (o.piEl) { var s = P.press.toFixed(1); if (o.piEl.textContent !== s) o.piEl.textContent = s; }
+      if (o.piEl) { var s = P.press.toFixed(uon ? 2 : 1); if (o.piEl.textContent !== s) o.piEl.textContent = s; }
       /* penghalang & blind flange */
       o.obst.visible = !!LK.cond.obst && !!(LK.cur && LK.cur.hasObst);
       mkT.position.y = yS;
@@ -2683,6 +2769,7 @@ window.LK = (function () {
       shellMat.needsUpdate = true;
       shell.renderOrder = on ? 5 : 0;
     };
+    if (LK.U && LK.U.build) LK.U.build(o);
     o.setFluid = function (f) {
       o.liq.liqMat.color.setHex(f.color); o.liq.liqMat.opacity = f.alpha;
       o.liq.surfMat.color.setHex(f.color); o.liq.surfMat.opacity = Math.min(1, f.alpha + 0.2);
@@ -2848,8 +2935,14 @@ window.LK = (function () {
     /* badge status proses */
     var md = P.mode, lab = md === 'fill' ? 'MENGISI ▲' : md === 'drain' ? 'MENGOSONGKAN ▼' : 'TAHAN';
     if (P.auto) lab = 'AUTO · ' + (md === 'fill' ? '▲' : md === 'drain' ? '▼' : '■');
-    setText('state-pct', lab + ' · ' + pct.toFixed(0) + ' %');
-    setCls('state-pct', 'badge' + (P.auto ? ' auto' : md === 'fill' ? ' fill' : md === 'drain' ? ' drain' : ''));
+    if (LK.U && LK.U.on) {
+      var ub = LK.U.badge();
+      setText('state-pct', ub.text);
+      setCls('state-pct', ub.cls);
+    } else {
+      setText('state-pct', lab + ' · ' + pct.toFixed(0) + ' %');
+      setCls('state-pct', 'badge' + (P.auto ? ' auto' : md === 'fill' ? ' fill' : md === 'drain' ? ' drain' : ''));
+    }
     setHtml('h-fluid', fluidHtml());
     if (!r || !m) return;
 
@@ -3076,7 +3169,7 @@ window.LK = (function () {
 
   /* ---------- kamera ---------- */
   LK.views = {
-    umum: { pos: [7.2, 5.2, 9.2], tgt: [0, 3.0, 0] },
+    umum: { pos: [8.0, 5.6, 10.2], tgt: [-0.3, 3.2, 0] },
     atas: { pos: [0.4, 13.5, 0.9], tgt: [0, 5.2, 0] },
     depan: { pos: [0.5, 3.6, 10.2], tgt: [0, 3.2, 0] },
     dasar: { pos: [4.6, 1.5, 5.8], tgt: [-0.4, 0.9, 0] }
@@ -3198,14 +3291,14 @@ window.LK = (function () {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === 'Escape') { if ($('cmp-modal').style.display !== 'none') { LK.closeCmp(); e.preventDefault(); } return; }
       if ($('cmp-modal').style.display !== 'none') return;
-      if (tag === 'SELECT' || (tag === 'INPUT' && tg.type === 'text')) return;
-      var k = e.key;
+      if (tag === 'SELECT' || tag === 'TEXTAREA' || (tag === 'INPUT' && (tg.type === 'text' || tg.type === 'number'))) return;
+      var k = e.key, uon = LK.U && LK.U.on;
       if (k === 'x' || k === 'X') { LK.setXray(!LK.xray); e.preventDefault(); }
       else if (k === 'l' || k === 'L') { LK.setLabels(!PK.labelsOn); e.preventDefault(); }
-      else if (k === ' ' || k === 'Spacebar') { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); LK.toggleAuto(); e.preventDefault(); }
+      else if (k === ' ' || k === 'Spacebar') { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (uon) LK.U.togglePause(); else LK.toggleAuto(); e.preventDefault(); }
       else if (k === 'q' || k === 'Q') { if (PK.S && PK.S.cycleQuality) PK.S.cycleQuality(); }
-      else if (k === 'ArrowUp') { LK.setTarget(Math.round(P.target / 5) * 5 + 5); e.preventDefault(); }
-      else if (k === 'ArrowDown') { LK.setTarget(Math.round(P.target / 5) * 5 - 5); e.preventDefault(); }
+      else if (k === 'ArrowUp') { if (uon) LK.U.nudgeLevelSP(5); else LK.setTarget(Math.round(P.target / 5) * 5 + 5); e.preventDefault(); }
+      else if (k === 'ArrowDown') { if (uon) LK.U.nudgeLevelSP(-5); else LK.setTarget(Math.round(P.target / 5) * 5 - 5); e.preventDefault(); }
     });
   }
 
@@ -3215,17 +3308,20 @@ window.LK = (function () {
   var failedMeasure = {};
   function tick(dt) {
     P.t += dt; // waktu simulasi monoton (konsisten pada FPS rendah & saat LK.advance)
-    var t = P.t;
-    stepProcess(dt);
+    var t = P.t, UU = LK.U && LK.U.on ? LK.U : null;
+    if (UU) UU.step(dt); else stepProcess(dt);
     deriveProcess();
     rig.update(dt, t);
     var m = LK.cur, r = null;
     if (m) {
-      try { r = m.measure ? m.measure(P, dt, LK) : null; }
+      /* mode startup: elektronik sensor ikut berjalan pada waktu PROSES (dipercepat), bukan waktu dinding */
+      var dtM = UU && !LK.U.paused ? Math.min(5, dt * LK.U.scale) : dt;
+      try { r = m.measure ? m.measure(P, dtM, LK) : null; }
       catch (e) {
         if (!failedMeasure[m.id]) { failedMeasure[m.id] = 1; console.error('measure() gagal [' + m.id + ']:', e); }
         r = { valid: false, note: ['Kesalahan perhitungan di metode ini (lihat konsol).', 'bad'] };
       }
+      if (UU) UU.jitter(r, dt, m);
       LK.r = r;
       if (m.update && m.built && !m.err) {
         try { m.update(P, r, dt, t, LK); }
@@ -3249,6 +3345,7 @@ window.LK = (function () {
       drawTrend();
       if (m && m.trace) drawTrace(r ? r.trace : null);
       syncProc();
+      if (UU) UU.hud();
     }
   }
 
@@ -3275,6 +3372,7 @@ window.LK = (function () {
     catch (e) { console.error(e); fatal('WEBGL TIDAK TERSEDIA', 'Browser/perangkat ini tidak dapat membuat konteks WebGL. ' + (e && e.message ? e.message : '')); return; }
     rig = LK.rig = buildRig();
     buildHud();
+    if (LK.U && LK.U.init) LK.U.init();
     PK.S.safeEl = document.querySelector('.center-col');
     PK.onFrame(tick);
     PK.start();
@@ -3291,6 +3389,861 @@ window.LK = (function () {
   };
 
   return LK;
+})();
+</script>
+<script>
+/* ========== startup.js ========== */
+/* =====================================================================
+   STARTUP / FINAL COMMISSIONING — model plant dinamis untuk tangki T-101
+   Plant dimulai "dingin & mati" (semua katup tutup, pompa mati, tangki hanya berisi heel),
+   lalu operator (atau sequencer otomatis) membuka XV-101 dan seluruh PV naik/turun secara
+   fisis sampai produksi normal:
+     - Level   : neraca massa  dV/dt = Qin − Qout   (LV-101 dikontrol LIC-101)
+     - Aliran  : Qin = f(LV-101, tekanan header),  Qout = f(FV-102, pompa)   (FIC-102)
+     - Suhu    : neraca energi CSTR + pemanas listrik E-101 (TIC-101) + umpan 45 °C
+     - Tekanan : gas ideal di ruang uap + blanketing N₂ / vent split-range (PIC-101)
+   Semua loop PI dengan anti-windup, katup dengan lag/rate-limit/stiction, sensor dengan
+   noise + filter, interlock (LALL, LAHH, TAHH), alarm, log event.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var LK = window.LK, PK = window.PK;
+  if (!LK || !PK) return;
+  var P = LK.P, clamp = LK.clamp, H = LK.H, R = LK.R, A = LK.A, DOME = LK.DOME;
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------------- konstanta plant ---------------- */
+  var VDOME = (2 / 3) * Math.PI * R * R * DOME;      // volume satu kepala elips ≈ 1,047 m³ (heel selalu terisi)
+  var VMAX = VDOME + A * H;                          // volume cairan pada level 4,0 m
+  var VTOT = 2 * VDOME + A * H;                      // volume total bejana
+  var QIN_MAX = 0.045;                               // m³/s, LV-101 terbuka penuh
+  var QOUT_MAX = 0.02;                               // m³/s, FV-102 terbuka penuh, pompa 100 %
+  var PDES_IN = 3.5;                                 // barg, ΔP desain LV-101
+  var NIN_MAX = 1.5, NOUT_MAX = 4.0;                 // mol/s kapasitas PCV-101A (N₂) / PCV-101B (vent)
+  var PMAX_HEAT = 500e3;                             // W, pemanas E-101
+  var UA = 150;                                      // W/K, rugi panas bejana berinsulasi
+  var T_AMB = 25, T_FEED = 45;                       // °C
+  var CP = { water: 4180, diesel: 2050, crude: 1900, methanol: 2530, acid: 1400, glycerin: 2400, slurry: 3000 };
+  var RGAS = 8.314, PATM = 101325;
+  var DT_MAX = 0.1;                                  // s, langkah integrasi maksimum
+  var SCALES = [1, 2, 5, 10, 20, 50];
+  var SP_DEF = { lic: 50, fic: 20, tic: 60, pic: 20 };
+
+  var rnd = PK.rng(424242);
+  function gauss() { var u = 0; while (u === 0) u = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd()); }
+  function ou(x, tau, sigma, dt) { return x - (x / tau) * dt + sigma * Math.sqrt((2 * dt) / tau) * gauss(); }
+  function lpf(prev, x, dt, tau) { return prev + (x - prev) * (1 - Math.exp(-dt / tau)); }
+  function eqp(x, Rg) { x = clamp(x, 0, 1); return x <= 0 ? 0 : (Math.pow(Rg, x - 1) - 1 / Rg) / (1 - 1 / Rg); }
+  function smooth01(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hms(s) { s = Math.max(0, Math.floor(s)); return pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) + ':' + pad(s % 60); }
+
+  var U = (LK.U = { on: false, scale: 10, paused: false, SCALES: SCALES, SP_DEF: SP_DEF });
+  var S = null;
+
+  /* ---------------- kontroler PI ---------------- */
+  function pid(sp, kp, ti, lo, hi) {
+    return { sp: sp, spEff: sp, spRate: 0, kp: kp, ti: ti, lo: lo, hi: hi, mode: 'MAN', op: 0, i: 0, pv: 0 };
+  }
+  /* aksi balik: OP naik saat PV < SP (level, aliran, suhu, tekanan: semuanya "menambah") */
+  function pidErr(c, pv) { return c.spEff - pv; }
+  function pidStep(c, pv, dt) {
+    c.pv = pv;
+    if (c.spRate > 0) { var d = c.sp - c.spEff, m = c.spRate * dt; c.spEff += clamp(d, -m, m); } else c.spEff = c.sp;
+    if (c.mode !== 'AUTO') return;
+    var e = pidErr(c, pv), u = c.kp * e + c.i;
+    if (!((u >= c.hi && e > 0) || (u <= c.lo && e < 0))) c.i += (c.kp / c.ti) * e * dt; // integrasi bersyarat (anti-windup)
+    c.i = clamp(c.i, -5000, 5000);
+    c.op = clamp(c.kp * e + c.i, c.lo, c.hi);
+  }
+  function pidMode(c, mode) {
+    if (c.mode === mode) return;
+    if (mode === 'AUTO') {
+      c.spEff = c.spRate > 0 ? c.pv : c.sp;
+      c.i = c.op - c.kp * pidErr(c, c.pv); // bumpless
+    }
+    c.mode = mode;
+  }
+
+  /* ---------------- aktuator ---------------- */
+  function stepValve(v, cmd, dt, tau, rate, db) {
+    if (Math.abs(cmd - v.tgt) > db || cmd <= 0.0001 || cmd >= 0.9999) v.tgt = cmd;  // stiction: abaikan koreksi < deadband
+    var d = clamp((v.tgt - v.pos) / tau, -rate, rate);
+    v.pos = clamp(v.pos + d * dt, 0, 1);
+  }
+  function stepOnOff(v, cmd, dt, travel) { v.pos = clamp(v.pos + (cmd ? 1 : -1) * dt / travel, 0, 1); }
+
+  /* ---------------- state awal: plant dingin & mati ---------------- */
+  function fresh() {
+    return {
+      clock: 0, dt: 0.1, V: VDOME, Pg: 0, T: T_AMB, Tg: T_AMB, qin: 0, qout: 0, qh: 0, dVdt: 0,
+      dPsup: 0, fBack: 0, dTfeed: 0, nQin: 0, nQout: 0, jn: 0,
+      xv1: { pos: 0 }, xv2: { pos: 0 }, cmd: { xv1: 0, xv2: 0 },
+      lv: { pos: 0, tgt: 0 }, fv: { pos: 0, tgt: 0 }, pcvN: { pos: 0, tgt: 0 }, pcvV: { pos: 0, tgt: 0 },
+      pumpCmd: 0, pump: { spd: 0 }, heat: 0,
+      lic: pid(SP_DEF.lic, 9, 90, 0, 100),
+      fic: pid(SP_DEF.fic, 1.2, 8, 0, 100),
+      tic: pid(SP_DEF.tic, 40, 250, 0, 100),
+      pic: pid(SP_DEF.pic, 3, 20, 0, 100),
+      pv: { lt: 0, ft1: 0, ft2: 0, tt: T_AMB, pt: 0 },
+      trip: { pump: 0, heat: 0, xv1: 0 }, heatOk: 0, heatWarned: 0,
+      al: {}, log: [], seq: { kind: null, i: 0, tIn: 0, entered: false, stab: 0, done: null },
+      trend: [], trendAcc: 0
+    };
+  }
+  S = fresh();
+  U.S = function () { return S; };
+  U.consts = { VDOME: VDOME, VMAX: VMAX, VTOT: VTOT, QIN_MAX: QIN_MAX, QOUT_MAX: QOUT_MAX, PMAX_HEAT: PMAX_HEAT };
+
+  /* ---------------- log & alarm ---------------- */
+  function log(txt, cls) {
+    S.log.unshift({ t: S.clock, txt: txt, cls: cls || '' });
+    if (S.log.length > 40) S.log.pop();
+    S.logVer = (S.logVer || 0) + 1;
+  }
+  function deny(msg) { log('DITOLAK: ' + msg, 'bad'); if (PK.toast) PK.toast(msg); return false; }
+
+  var ALARMS = [
+    { id: 'LAH', txt: 'LAH-101 level tinggi (> 85 %)', on: function (p) { return p.lt > 85; }, off: function (p) { return p.lt < 83; }, cls: 'warn' },
+    { id: 'LAHH', txt: 'LAHH-101 level sangat tinggi (> 95 %) → XV-101 tutup', on: function (p) { return p.lt > 95; }, off: function (p) { return p.lt < 92; }, cls: 'bad' },
+    { id: 'LAL', txt: 'LAL-101 level rendah (< 20 %)', on: function (p) { return p.lt < 20 && S.clock > 1 && S.alLow; }, off: function (p) { return p.lt > 22; }, cls: 'warn' },
+    { id: 'LALL', txt: 'LALL-101 level sangat rendah (< 12 %)', on: function (p) { return p.lt < 12 && S.alLow; }, off: function (p) { return p.lt > 14; }, cls: 'bad' },
+    { id: 'TAH', txt: 'TAH-101 suhu tinggi (> 70 °C)', on: function (p) { return p.tt > 70; }, off: function (p) { return p.tt < 68; }, cls: 'warn' },
+    { id: 'TAHH', txt: 'TAHH-101 suhu sangat tinggi (> 80 °C) → heater trip', on: function (p) { return p.tt > 80; }, off: function (p) { return p.tt < 77; }, cls: 'bad' },
+    { id: 'PAH', txt: 'PAH-101 tekanan tinggi (> 50 mbar)', on: function (p) { return p.pt > 50; }, off: function (p) { return p.pt < 45; }, cls: 'warn' },
+    { id: 'PAL', txt: 'PAL-101 tekanan rendah (< −3 mbar)', on: function (p) { return p.pt < -3; }, off: function (p) { return p.pt > -1.5; }, cls: 'warn' }
+  ];
+  function alarmsStep() {
+    var p = S.pv;
+    /* alarm level rendah baru aktif setelah level pernah melewati 20 % (agar tidak alarm saat tangki memang kosong di awal) */
+    if (p.lt > 25) S.alLow = true;
+    if (p.lt < 3 && S.xv1.pos < 0.01 && !S.pumpCmd && S.pump.spd < 0.02) S.alLow = false;
+    ALARMS.forEach(function (a) {
+      var act = !!S.al[a.id];
+      if (!act && a.on(p)) { S.al[a.id] = 1; log('ALARM ' + a.txt, a.cls); }
+      else if (act && a.off(p)) { S.al[a.id] = 0; log('Normal kembali: ' + a.id + '-101', 'ok'); }
+    });
+  }
+  function interlocks() {
+    var p = S.pv;
+    if (p.lt < 12 && S.alLow) {
+      if (!S.trip.pump && (S.pumpCmd || S.pump.spd > 0.05)) { S.trip.pump = 1; S.pumpCmd = 0; log('LALL-101 → P-101 TRIP (hisap hampir kering)', 'bad'); }
+    }
+    if (p.lt < 15 && S.alLow && !S.trip.heat && S.heat > 0.02) { S.trip.heat = 1; log('LALL → E-101 TRIP (elemen pemanas tidak terendam)', 'bad'); }
+    if (p.tt > 80 && !S.trip.heat) { S.trip.heat = 1; log('TAHH-101 → E-101 TRIP', 'bad'); }
+    if (p.lt > 95 && !S.trip.xv1) { S.trip.xv1 = 1; S.cmd.xv1 = 0; log('LAHH-101 → XV-101 tutup (ESD)', 'bad'); }
+  }
+
+  /* ---------------- sequencer ---------------- */
+  var SEQ = {
+    start: [
+      { t: 'Persiapan: semua katup tutup, tangki berisi heel. Blanketing N₂ (PIC-101 AUTO)',
+        enter: function () { pidMode(S.pic, 'AUTO'); },
+        done: function () { return S.seq.tIn > 8 && Math.abs(S.pv.pt - S.pic.sp) < 4; } },
+      { t: 'Buka XV-101, LIC-101 AUTO → isi tangki sampai level ≥ 32 %',
+        enter: function () { act('xv1', 1, true); pidMode(S.lic, 'AUTO'); },
+        done: function () { return S.pv.lt >= 32; } },
+      { t: 'Buka XV-102 (hisap pompa) dan nyalakan pemanas: TIC-101 AUTO',
+        enter: function () { act('xv2', 1, true); pidMode(S.tic, 'AUTO'); },
+        done: function () { return S.xv2.pos > 0.99 && S.pv.lt >= 35; } },
+      { t: 'Start pompa P-101 (ramp kecepatan)',
+        enter: function () { act('pump', 1, true); },
+        done: function () { return S.pump.spd > 0.97; } },
+      { t: 'FIC-102 AUTO: naikkan aliran produk ke SP (ramp)',
+        enter: function () { S.fic.spRate = 0.25; pidMode(S.fic, 'AUTO'); },
+        done: function () { return Math.abs(S.pv.ft2 - S.fic.sp) < 1; } },
+      { t: 'Stabilisasi: level, aliran, suhu, tekanan menuju SP (stabil ±, 2 menit)',
+        enter: function () { S.seq.stab = 0; },
+        done: function () {
+          var p = S.pv, ok = Math.abs(p.lt - S.lic.sp) < 1 && Math.abs(p.ft2 - S.fic.sp) < 1 && Math.abs(p.tt - S.tic.sp) < 1 && Math.abs(p.pt - S.pic.sp) < 4;
+          S.seq.stab = ok ? S.seq.stab + S.dt : 0;
+          return S.seq.stab >= 120;
+        } },
+      { t: 'PRODUKSI NORMAL — semua loop pada SP', final: true }
+    ],
+    stop: [
+      { t: 'Matikan pemanas (TIC-101 MAN 0 %), turunkan aliran produk (ramp)',
+        enter: function () { pidMode(S.tic, 'MAN'); S.tic.op = 0; S.fic.spRate = 0.5; S.fic.sp = 0; pidMode(S.fic, 'AUTO'); },
+        done: function () { return S.pv.ft2 < 0.6; } },
+      { t: 'Stop P-101, tutup FV-102 dan XV-102',
+        enter: function () { pidMode(S.fic, 'MAN'); S.fic.op = 0; S.pumpCmd = 0; S.cmd.xv2 = 0; log('P-101 stop, XV-102 tutup', ''); },
+        done: function () { return S.pump.spd < 0.02 && S.xv2.pos < 0.01; } },
+      { t: 'Tutup XV-101, LIC-101 MAN 0 %',
+        enter: function () { pidMode(S.lic, 'MAN'); S.lic.op = 0; S.cmd.xv1 = 0; log('XV-101 ditutup', ''); },
+        done: function () { return S.xv1.pos < 0.01; } },
+      { t: 'PLANT SHUTDOWN — tangki terisolasi, blanketing N₂ tetap aktif', final: true }
+    ]
+  };
+  function seqUpdate() {
+    var q = S.seq;
+    if (!q.kind) return;
+    var st = SEQ[q.kind][q.i];
+    q.tIn += S.dt;
+    if (!q.entered) { q.entered = true; if (st.enter) st.enter(); log((q.kind === 'start' ? 'STARTUP' : 'SHUTDOWN') + ' langkah ' + (q.i + 1) + ': ' + st.t, 'seq'); }
+    if (st.final) { q.done = q.kind; q.kind = null; log(st.t, 'ok'); return; }
+    if (st.done()) { q.i++; q.tIn = 0; q.entered = false; }
+  }
+
+  /* ---------------- perintah operator (UI, sequencer, uji) ---------------- */
+  function act(name, v, quiet) {
+    var lt = S.pv.lt;
+    switch (name) {
+      case 'xv1':
+        if (v) {
+          if (S.trip.xv1) return deny('XV-101 terkunci oleh ESD level tinggi — RESET dahulu');
+          if (!S.cmd.xv1) { S.cmd.xv1 = 1; if (!quiet) log('XV-101 dibuka (operator)', ''); }
+        } else if (S.cmd.xv1) { S.cmd.xv1 = 0; if (!quiet) log('XV-101 ditutup (operator)', ''); }
+        return true;
+      case 'xv2':
+        if (v) { if (!S.cmd.xv2) { S.cmd.xv2 = 1; if (!quiet) log('XV-102 dibuka (operator)', ''); } }
+        else if (S.cmd.xv2) { S.cmd.xv2 = 0; if (!quiet) log('XV-102 ditutup (operator)', ''); }
+        return true;
+      case 'pump':
+        if (v) {
+          if (S.trip.pump) return deny('P-101 TRIP (LALL) — RESET dahulu');
+          if (lt < 30) return deny('Permissive P-101: level harus ≥ 30 % (sekarang ' + lt.toFixed(1) + ' %)');
+          if (S.xv2.pos < 0.9) return deny('Permissive P-101: buka XV-102 (hisap) dahulu');
+          if (!S.pumpCmd) { S.pumpCmd = 1; log('P-101 START', ''); }
+        } else if (S.pumpCmd) { S.pumpCmd = 0; log('P-101 STOP', ''); }
+        return true;
+    }
+    return false;
+  }
+  U.act = function (name, v) { return act(name, v, false); };
+
+  var CTRL = { lic: 'lic', fic: 'fic', tic: 'tic', pic: 'pic' };
+  U.setMode = function (id, mode) {
+    var c = S[CTRL[id]];
+    if (!c || c.mode === mode) return;
+    if (mode === 'AUTO' && id === 'tic' && (S.trip.heat || S.pv.lt < 25)) return deny('Interlock E-101: level < 25 % atau heater TRIP — heater tidak boleh AUTO');
+    pidMode(c, mode);
+    log(id.toUpperCase() + '-10' + (id === 'fic' ? 2 : 1) + ' → ' + mode, '');
+  };
+  U.setSP = function (id, v) {
+    var c = S[CTRL[id]];
+    if (!c || !isFinite(v)) return;
+    var lim = { lic: [0, 100], fic: [0, 45], tic: [20, 78], pic: [-5, 45] }[id];
+    c.sp = clamp(v, lim[0], lim[1]);
+    if (c.mode === 'AUTO' && !(c.spRate > 0)) c.spEff = c.sp;
+  };
+  U.setOP = function (id, v) {
+    var c = S[CTRL[id]];
+    if (!c || c.mode !== 'MAN' || !isFinite(v)) return;
+    c.op = clamp(v, 0, 100);
+  };
+  U.nudgeLevelSP = function (d) { U.setSP('lic', S.lic.sp + d); };
+  U.seqStart = function (kind) {
+    if (S.seq.kind === kind) return;
+    S.seq = { kind: kind, i: 0, tIn: 0, entered: false, stab: 0, done: null };
+    log(kind === 'start' ? 'STARTUP OTOMATIS dimulai' : 'SHUTDOWN dimulai', 'seq');
+  };
+  U.seqAbort = function () { if (S.seq.kind) { log('Sequence dihentikan operator', 'warn'); S.seq.kind = null; } };
+  U.esd = function () {
+    S.seq.kind = null; S.seq.done = null;
+    S.cmd.xv1 = 0; S.cmd.xv2 = 0; S.pumpCmd = 0; S.trip.heat = 1; S.trip.xv1 = 1; S.trip.pump = 1;
+    pidMode(S.lic, 'MAN'); S.lic.op = 0; pidMode(S.fic, 'MAN'); S.fic.op = 0; pidMode(S.tic, 'MAN'); S.tic.op = 0;
+    log('EMERGENCY SHUTDOWN (ESD) — XV-101/102 tutup, P-101 & E-101 trip', 'bad');
+  };
+  U.resetTrips = function () {
+    var p = S.pv, any = S.trip.pump || S.trip.heat || S.trip.xv1;
+    if (!any) { log('Tidak ada trip aktif', ''); return; }
+    if (S.trip.xv1 && p.lt > 90) return deny('Reset XV-101: level masih > 90 %');
+    if (S.trip.pump && S.alLow && p.lt < 20) return deny('Reset P-101: level masih < 20 %');
+    if (S.trip.heat && p.tt > 75) return deny('Reset E-101: suhu masih > 75 °C');
+    S.trip.pump = S.trip.heat = S.trip.xv1 = 0;
+    log('Trip di-reset', 'ok');
+  };
+  U.setScale = function (k) { U.scale = k; };
+  U.togglePause = function () { U.paused = !U.paused; return U.paused; };
+
+  /* ---------------- satu langkah fisika (dt detik waktu proses) ---------------- */
+  function stepPlant(dt) {
+    if (!(dt > 1e-6)) return;   // frame pertama punya dt = 0 → hindari 0/0
+    var s = S, f = P.fluid, cp = CP[f.id] || 4000, rho = f.rho(s.T);
+    s.dt = dt;
+    s.clock += dt;
+
+    /* gangguan latar (fluktuasi nyata: header, back-pressure, umpan) */
+    s.dPsup = ou(s.dPsup, 40, 0.08, dt);
+    s.fBack = ou(s.fBack, 25, 0.025, dt);
+    s.dTfeed = ou(s.dTfeed, 300, 1.0, dt);
+    s.nQin = ou(s.nQin, 2, 0.006, dt);
+    s.nQout = ou(s.nQout, 6, 0.015, dt);
+    s.dDem = ou(s.dDem || 0, 120, 0.04, dt);   // permintaan konsumen hilir bergeser pelan
+    var Psup = 4.0 + s.dPsup, Tfeed = T_FEED + s.dTfeed;
+
+    /* interlock memaksa keluaran */
+    s.heatOk = (s.pv.lt >= 25 || (s.heatOk && s.pv.lt >= 22)) && !s.trip.heat ? 1 : 0;
+
+    /* kontroler (PV = nilai transmitter ber-noise) */
+    pidStep(s.lic, s.pv.lt, dt);
+    pidStep(s.fic, s.pv.ft2, dt);
+    pidStep(s.tic, s.pv.tt, dt);
+    pidStep(s.pic, s.pv.pt, dt);
+
+    /* aktuator */
+    stepOnOff(s.xv1, s.cmd.xv1 && !s.trip.xv1, dt, 5);
+    stepOnOff(s.xv2, s.cmd.xv2, dt, 5);
+    stepValve(s.lv, s.lic.op / 100, dt, 1.5, 0.08, 0.004);
+    stepValve(s.fv, s.fic.op / 100, dt, 1.2, 0.12, 0.004);
+    var pic = s.pic.op;
+    stepValve(s.pcvN, pic > 50 ? (pic - 50) / 50 : 0, dt, 0.8, 0.5, 0.003);
+    stepValve(s.pcvV, pic < 50 ? (50 - pic) / 50 : 0, dt, 0.8, 0.5, 0.003);
+    var heatCmd = s.heatOk ? s.tic.op / 100 : 0;
+    if (!s.heatOk && s.tic.op > 0.5 && !s.heatWarned && s.tic.mode === 'AUTO') { s.heatWarned = 1; log('Interlock E-101: pemanas diblok (level < 25 % atau trip)', 'warn'); }
+    if (s.heatOk) s.heatWarned = 0;
+    s.heat = lpf(s.heat, heatCmd, dt, 20);
+
+    /* pompa */
+    if (s.pumpCmd && !s.trip.pump) s.pump.spd = Math.min(1, s.pump.spd + dt / 5);
+    else s.pump.spd = Math.max(0, s.pump.spd - dt / 6);
+
+    /* aliran */
+    var h = clamp((s.V - VDOME) / A, 0, H), pgBar = s.Pg / 1e5;
+    var qin = QIN_MAX * eqp(s.lv.pos, 20) * s.xv1.pos * Math.sqrt(clamp((Psup - pgBar) / PDES_IN, 0, 2)) * (1 + s.nQin);
+    var suc = smooth01(0.03, 0.25, h);
+    var qout = QOUT_MAX * eqp(s.fv.pos, 10) * s.xv2.pos * s.pump.spd * Math.sqrt(clamp((0.85 + 0.15 * h / H) * (1 + s.fBack + s.dDem), 0.2, 1.4)) * suc * (1 + s.nQout);
+    qin = Math.max(0, qin); qout = Math.max(0, qout);
+
+    /* neraca massa */
+    var Vold = s.V, V = s.V + (qin - qout) * dt;
+    if (V < VDOME) { V = VDOME; qout = Math.max(0, qin + (Vold - VDOME) / dt); }
+    if (V > VMAX) V = VMAX;
+    s.V = V; s.qin = qin; s.qout = qout;
+    s.dVdt = (V - Vold) / dt;
+    h = clamp((V - VDOME) / A, 0, H);
+
+    /* neraca energi (CSTR + pemanas) */
+    var M = rho * V, Qh = s.heat * PMAX_HEAT;
+    s.qh = Qh;
+    s.T += dt * (rho * qin * (Tfeed - s.T) + (Qh - UA * (s.T - T_AMB)) / cp) / M;
+    s.T = clamp(s.T, -5, 130);
+
+    /* tekanan ruang uap (gas ideal + blanketing/vent + PSV + pemecah vakum) */
+    var Vv = Math.max(0.5, VTOT - V), Tg = 0.5 * (s.T + T_AMB) + 273.15, Pabs = PATM + s.Pg;
+    var nin = NIN_MAX * s.pcvN.pos * Math.sqrt(clamp((3e5 - s.Pg) / 3e5, 0, 1));
+    var nout = NOUT_MAX * s.pcvV.pos * Math.sqrt(Math.max(0, s.Pg) / 3000);
+    var psv = s.Pg > 15000 ? 40 * Math.sqrt((s.Pg - 15000) / 3000) : 0;
+    var vb = s.Pg < -1000 ? 40 * Math.sqrt((-1000 - s.Pg) / 3000) : 0;
+    s.Pg += dt * (Pabs * s.dVdt / Vv + (RGAS * Tg / Vv) * (nin + vb - nout - psv)) + Pabs * (Tg - (s.TgPrev || Tg)) / Tg;
+    s.TgPrev = Tg;
+    s.Pg = clamp(s.Pg, -3000, 40000);
+
+    /* sensor: noise + filter (LT/FT/TT/PT tidak pernah konstan) */
+    var wave = P.waveAmp || 0.0015;
+    var ltRaw = (100 * h) / H + gauss() * (0.05 + (100 / H) * wave * 0.3);
+    s.pv.lt = lpf(s.pv.lt, ltRaw, dt, 1.0);
+    s.pv.ft1 = lpf(s.pv.ft1, qin * 3600 * (1 + 0.003 * gauss()) + (qin > 1e-6 ? 0 : 0.01 * gauss()), dt, 0.5);
+    s.pv.ft2 = lpf(s.pv.ft2, qout * 3600 * (1 + 0.003 * gauss()) + (qout > 1e-6 ? 0 : 0.01 * gauss()), dt, 0.5);
+    s.pv.tt = lpf(s.pv.tt, s.T + 0.05 * gauss(), dt, 6.0);
+    s.pv.pt = lpf(s.pv.pt, s.Pg / 100 + 0.15 * gauss(), dt, 0.3);
+
+    alarmsStep();
+    interlocks();
+    seqUpdate();
+    /* label status sequence hanya berlaku selama kondisinya masih benar */
+    if (s.seq.done === 'start' && (s.pump.spd < 0.5 || s.xv1.pos < 0.5)) s.seq.done = null;
+    if (s.seq.done === 'stop' && s.xv1.pos > 0.05) s.seq.done = null;
+
+    /* rekam tren tiap 2 detik waktu proses */
+    s.trendAcc += dt;
+    if (s.trendAcc >= 2) {
+      s.trendAcc = 0;
+      s.trend.push({ t: s.clock, lt: s.pv.lt, ls: s.lic.spEff, ft: s.pv.ft2, fi: s.pv.ft1, fs: s.fic.spEff, tt: s.pv.tt, ts: s.tic.spEff, pt: s.pv.pt, ps: s.pic.spEff });
+      if (s.trend.length > 1400) s.trend.shift();
+    }
+  }
+
+  /* tulis hasil ke proses global P (dibaca semua metode ukur) */
+  function apply(simDt) {
+    var h = clamp((S.V - VDOME) / A, 0, H);
+    P.vel = simDt > 0 ? (h - P.level) / simDt : 0;
+    P.level = h;
+    P.T = S.T;
+    P.flow = clamp((S.qin - S.qout) / 0.02, -1, 1);
+    P.mode = Math.abs(S.dVdt) < 4e-5 ? 'hold' : (S.dVdt > 0 ? 'fill' : 'drain');
+    P.target = (h / H) * 100;
+  }
+  U.step = function (dt) {
+    if (U.paused) return;
+    var sim = dt * U.scale;
+    if (!(sim > 1e-6)) return;
+    var n = Math.max(1, Math.min(150, Math.ceil(sim / DT_MAX))), hh = sim / n;
+    for (var i = 0; i < n; i++) stepPlant(hh);
+    if (!isFinite(S.V + S.T + S.Pg + S.pv.lt)) { console.error('Plant NaN → reset'); U.reset(); return; }
+    apply(sim);
+  };
+  /* maju N detik WAKTU PROSES tanpa render (untuk uji) */
+  U.runSim = function (sec) {
+    var n = Math.ceil(sec / DT_MAX);
+    for (var i = 0; i < n; i++) stepPlant(DT_MAX);
+    apply(sec);
+  };
+
+  /* besaran untuk deriveProcess / rig */
+  U.pressBarg = function () { return S.Pg / 1e5 + 0.00015 * gauss(); };
+  U.wave = function () { return 0.008 * (S.qin / 0.03) + 0.003 * S.pump.spd * (1 - smooth01(0.3, 1.5, (S.V - VDOME) / A)); };
+
+  /* jitter elektronik + proses pada pembacaan metode terpilih (hanya mode startup) */
+  U.jitter = function (r, dt, m) {
+    if (!r || !isFinite(r.v) || r.valid === false || r.sw || !m) return;
+    if (m.group === 'visual' || m.group === 'sw') return;
+    var a = Math.exp(-dt / 0.35), sig = 0.0007 + 0.0035 * P.waveAmp;
+    S.jn = S.jn * a + sig * Math.sqrt(1 - a * a) * gauss();
+    var d = S.jn;
+    if (typeof r.out === 'number' && Math.abs(r.out - LK.mA(r.v)) < 0.02) r.out += (16 * d) / H;
+    r.v += d;
+    if (r.err != null && isFinite(r.err)) r.err += d * 1000;
+    if (r.tp != null && isFinite(r.tp)) r.tp += (d / H) * 100;
+  };
+
+  U.reset = function () {
+    var keep = { scale: U.scale };
+    S = fresh();
+    S.log = [];
+    log('Plant COLD & DARK: semua katup tutup, pompa mati, tangki berisi heel (level 0 m)', '');
+    U.paused = false;
+    U.scale = keep.scale;
+    apply(0);
+    P.level = 0;
+  };
+  U.badge = function () {
+    var q = S.seq, pct = (S.pv.lt).toFixed(0) + ' %';
+    var tag;
+    if (S.trip.pump || S.trip.heat || S.trip.xv1) return { text: 'TRIP AKTIF · ' + pct, cls: 'badge drain' };
+    if (q.kind) return { text: (q.kind === 'start' ? 'STARTUP ' : 'SHUTDOWN ') + (q.i + 1) + '/' + (SEQ[q.kind].length - 1) + ' · ' + pct, cls: 'badge auto' };
+    if (q.done === 'start') return { text: 'PRODUKSI NORMAL · ' + pct, cls: 'badge fill' };
+    if (q.done === 'stop') return { text: 'PLANT STOP · ' + pct, cls: 'badge' };
+    tag = S.xv1.pos > 0.02 || S.pump.spd > 0.02 ? 'OPERASI MANUAL' : 'SIAGA (COLD)';
+    return { text: tag + ' · ' + pct, cls: 'badge' };
+  };
+
+  /* =====================================================================
+     3D: peralatan tambahan (LV-101, FT, FV-102, XV-102, E-101, TT-101, N₂ & vent)
+     ===================================================================== */
+  var V3 = null;
+  U.build = function (rig) {
+    var T = window.THREE, M = PK.M, root = rig.root, o = (V3 = { labels: [] });
+    function lab(pos, html, cls) { var l = PK.label({ obj: root, pos: pos, html: html, cls: cls }); o.labels.push(l); return l; }
+    var rad = function (d) { return (d * Math.PI) / 180; };
+    var inZ = (R + 1.4) * Math.sin(rad(200));
+
+    function magmeter(x, y, z) {
+      PK.cyl(0.095, 0.095, 0.32, M.steelD, x, y, z, root, 24).rotation.z = Math.PI / 2;
+      PK.cyl(0.125, 0.125, 0.03, M.steel, x - 0.17, y, z, root, 24).rotation.z = Math.PI / 2;
+      PK.cyl(0.125, 0.125, 0.03, M.steel, x + 0.17, y, z, root, 24).rotation.z = Math.PI / 2;
+      PK.cyl(0.05, 0.05, 0.1, M.steelD, x, y + 0.13, z, root, 14);
+      var xm = PK.xmtr({ mat: M.green, r: 0.06, h: 0.1 });
+      xm.g.position.set(x, y + 0.17, z);
+      root.add(xm.g);
+      return xm;
+    }
+
+    /* masuk: LV-101 + FT-101 (di jalur horizontal pipa umpan) */
+    o.lv = PK.valve('act', 0.055, root, -3.7, 0.62, inZ);
+    o.ft1 = magmeter(-4.75, 0.62, inZ);
+    o.lblLV = lab([-3.7, 1.22, inZ], '');
+    o.lblFT1 = lab([-4.75, 1.18, inZ], '');
+    o.lblXV1 = lab([(R + 1.4) * Math.cos(rad(200)), 2.05, inZ], '');
+
+    /* keluar: XV-102 (hisap), FV-102 + FT-102 (buang) */
+    o.xv2 = PK.valve('act', 0.05, root, -1.3, 0.34, 0.9);
+    o.fv = PK.valve('act', 0.055, root, -3.45, 1.75, 0.9);
+    o.ft2 = magmeter(-5.0, 1.75, 0.9);
+    o.lblXV2 = lab([-1.3, 0.95, 0.9], '');
+    o.lblFV = lab([-3.45, 2.4, 0.9], '');
+    o.lblFT2 = lab([-5.0, 2.3, 0.9], '');
+    o.lblPump = lab([-3.1, 1.5, 0.9], '');
+
+    /* pemanas listrik E-101 (sisi θ = 255°, level 0,7 m) */
+    var th = rad(255), rr = R + 0.24, hy = Y0Level(0.7);
+    var gH = new T.Group();
+    gH.position.set(rr * Math.cos(th), hy, rr * Math.sin(th));
+    gH.rotation.y = -th;   // +X lokal = arah radial keluar
+    root.add(gH);
+    PK.cyl(0.13, 0.13, 0.24, M.steel, -0.12, 0, 0, gH, 20).rotation.z = Math.PI / 2;
+    PK.cyl(0.2, 0.2, 0.04, M.steelD, 0.015, 0, 0, gH, 28).rotation.z = Math.PI / 2;
+    PK.box(0.3, 0.26, 0.24, M.blue, 0.2, 0, 0, gH);
+    PK.cyl(0.02, 0.02, 0.18, M.cable, 0.2, -0.22, 0, gH, 8);
+    o.heatMat = new T.MeshStandardMaterial({ color: 0x6b5d55, metalness: 0.7, roughness: 0.4, emissive: 0xff5a14, emissiveIntensity: 0 });
+    [[-0.07, 0.06], [0.07, 0.06], [0, -0.07]].forEach(function (p) {
+      PK.rod([-0.26, p[0], p[1]], [-0.98, p[0], p[1]], 0.018, o.heatMat, gH, 8);
+    });
+    PK.rod([-0.98, -0.07, 0.06], [-0.98, 0.07, 0.06], 0.018, o.heatMat, gH, 8);
+    o.lblHeat = lab([rr * Math.cos(th), hy - 0.42, rr * Math.sin(th)], '');
+
+    /* TT-101 thermowell + transmitter (θ = 125°, level 2,4 m) */
+    var tt = rad(125), gT = new T.Group();
+    gT.position.set(rr * Math.cos(tt), Y0Level(2.4), rr * Math.sin(tt));
+    gT.rotation.y = -tt;
+    root.add(gT);
+    PK.cyl(0.04, 0.04, 0.24, M.steel, -0.12, 0, 0, gT, 12).rotation.z = Math.PI / 2;
+    PK.cyl(0.07, 0.07, 0.03, M.steelD, 0.0, 0, 0, gT, 18).rotation.z = Math.PI / 2;
+    PK.cyl(0.03, 0.03, 0.2, M.steel, 0.12, 0, 0, gT, 10).rotation.z = Math.PI / 2;
+    o.tt = PK.xmtr({ mat: M.blue, r: 0.055, h: 0.09 });
+    o.tt.g.position.set(0.22, -0.02, 0);
+    o.tt.g.rotation.z = -Math.PI / 2 + Math.PI / 2;
+    gT.add(o.tt.g);
+    o.lblTT = lab([rr * Math.cos(tt), Y0Level(2.4) + 0.38, rr * Math.sin(tt)], '');
+
+    /* blanketing N₂ (PCV-101A) pada nozzle atas θ=(0,4,−0,62)  & vent (PCV-101B) pada stub vent yang ada */
+    var nx = 0.4, nz = -0.62, ny = LK.domeY(Math.hypot(nx, nz)) + 0.2;
+    PK.cyl(0.04, 0.04, 0.4, M.steel, nx, ny + 0.0, nz, root, 12);
+    PK.flange(0.04, root).position.set(nx, ny + 0.22, nz);
+    var n2pipe = PK.pipe([[nx, ny + 0.2, nz], [nx, ny + 0.75, nz], [2.3, ny + 0.75, nz], [2.3, 0.5, nz]], 0.035, M.pipe, root, { bend: 0.15 });
+    o.n2flow = PK.flowOverlay(n2pipe, 0x8fd4ff, 0.035, root);
+    o.pcvN = PK.valve('act', 0.04, root, 1.35, ny + 0.75, nz);
+    PK.cyl(0.07, 0.07, 0.3, M.green, 2.3, 0.2, nz, root, 16);
+    o.lblN2 = lab([1.35, ny + 1.25, nz], '');
+
+    var vx = -0.2, vz = -0.69, vy = LK.domeY(0.72) + 0.38;
+    var vpipe = PK.pipe([[vx, vy, vz], [vx, vy + 0.45, vz], [-1.75, vy + 0.45, vz], [-1.75, vy + 1.25, vz]], 0.035, M.pipe, root, { bend: 0.15 });
+    o.ventflow = PK.flowOverlay(vpipe, 0xffd27f, 0.035, root);
+    o.pcvV = PK.valve('act', 0.04, root, -1.0, vy + 0.45, vz);
+    PK.cyl(0.05, 0.07, 0.08, M.steelD, -1.75, vy + 1.3, vz, root, 14);
+    o.lblVent = lab([-1.0, vy + 0.95, vz], '');
+
+    /* label kontroler pada tangki */
+    o.lblLIC = lab([Math.cos(0.55) * 1.0, Y0Level(3.05), Math.sin(0.55) * 1.0], '', '');
+
+    function Y0Level(l) { return LK.Y0 + l; }
+    U.v3 = o;
+    U.labelsOn(U.on);
+  };
+  U.labelsOn = function (on) { if (V3) V3.labels.forEach(function (l) { l.show(!!on); }); };
+
+  /* animasi & label (dipanggil dari rig.update bila mode startup) */
+  U.visual = function (rig, dt, t, yS, jet) {
+    var qa = S.qin > 2e-4 ? clamp(0.3 + 0.7 * (S.qin / 0.03), 0, 1) : 0;
+    var qb = S.qout > 2e-4 ? clamp(0.3 + 0.7 * (S.qout / 0.03), 0, 1) : 0;
+    var jy = LK.Y0 + 3.7, jl = Math.max(0.001, jy - yS);
+    jet.visible = S.qin > 2e-4 && jl > 0.02;
+    if (jet.visible) { jet.scale.set(1, jl, 1); jet.position.set(rig.jet.x, yS + jl / 2, rig.jet.z); jet.material.opacity = 0.2 + 0.5 * qa; }
+    rig.flows.inFlow.update(dt, qa);
+    rig.flows.outFlow.update(dt, qb);
+    rig.flows.disFlow.update(dt, qb);
+    rig.xv.setOpen(S.xv1.pos);
+    rig.hv.setOpen(1);
+    rig.pump.update(dt, S.pump.spd > 0.3);
+    if (V3) {
+      V3.lv.setOpen(S.lv.pos); V3.fv.setOpen(S.fv.pos); V3.xv2.setOpen(S.xv2.pos);
+      V3.pcvN.setOpen(S.pcvN.pos); V3.pcvV.setOpen(S.pcvV.pos);
+      V3.heatMat.emissiveIntensity = clamp(S.heat, 0, 1) * 2.2;
+      V3.n2flow.update(dt, S.pcvN.pos > 0.02 ? clamp(0.3 + S.pcvN.pos, 0, 1) : 0);
+      V3.ventflow.update(dt, S.pcvV.pos > 0.02 ? clamp(0.3 + S.pcvV.pos, 0, 1) : 0);
+    }
+  };
+
+  /* mode manual: katup/pemanas tambahan dalam keadaan statis */
+  U.visualIdle = function (dt) {
+    if (!V3) return;
+    var fl = P.flow;
+    V3.lv.setOpen(clamp(Math.abs(fl), 0, 1) * 0.5); V3.fv.setOpen(fl < -0.03 ? 0.55 : 0); V3.xv2.setOpen(1);
+    V3.pcvN.setOpen(0); V3.pcvV.setOpen(0); V3.heatMat.emissiveIntensity = 0;
+    V3.n2flow.update(dt, 0); V3.ventflow.update(dt, 0);
+  };
+
+  /* =====================================================================
+     HUD: panel DCS, status bar, label 3D, tren proses
+     ===================================================================== */
+  var last = {};
+  function setT(id, v) { if (last[id] === v) return; last[id] = v; var e = $(id); if (e) e.textContent = v; }
+  function setC(id, v) { if (last['c' + id] === v) return; last['c' + id] = v; var e = $(id); if (e) e.className = v; }
+  function setH(id, v) { if (last['h' + id] === v) return; last['h' + id] = v; var e = $(id); if (e) e.innerHTML = v; }
+  var f1 = function (x) { return x.toFixed(1); }, f2 = function (x) { return x.toFixed(2); };
+
+  function buildPanel() {
+    var right = document.querySelector('.right'), left = document.querySelector('.left');
+    if (!right || !left || $('u-panel')) return;
+
+    /* pemilih mode (kiri atas) */
+    var mp = document.createElement('div');
+    mp.className = 'panel';
+    mp.id = 'u-modepanel';
+    mp.innerHTML = '<div class="panel-title">MODE SIMULASI</div>' +
+      '<div class="btn-row" style="grid-template-columns:1fr 1fr;margin-top:0"><button class="btn" id="u-m-start" type="button">STARTUP / COMMISSIONING</button><button class="btn" id="u-m-manual" type="button">MANUAL (PEMBANDING)</button></div>' +
+      '<div class="u-mnote" id="u-mnote"></div>';
+    left.insertBefore(mp, left.firstChild);
+
+    /* panel DCS (kanan) */
+    var seqHtml = '';
+    ['start', 'stop'].forEach(function (k) {
+      seqHtml += '<ol class="u-seq" id="u-seq-' + k + '">' + SEQ[k].map(function (st, i) { return '<li id="u-s-' + k + i + '"><i></i><span>' + st.t + '</span></li>'; }).join('') + '</ol>';
+    });
+    var pvRows = [
+      ['lt', 'LT-101', 'Level tangki', '%'], ['ft1', 'FT-101', 'Aliran masuk', 'm³/h'], ['ft2', 'FT-102', 'Aliran keluar', 'm³/h'],
+      ['tt', 'TT-101', 'Suhu fluida', '°C'], ['pt', 'PT-101', 'Tekanan gas', 'mbar'],
+      ['zlv', 'LV-101', 'Posisi katup masuk', '%'], ['zfv', 'FV-102', 'Posisi katup keluar', '%'],
+      ['eh', 'E-101', 'Daya pemanas', 'kW'], ['ep', 'P-101', 'Kecepatan pompa', '%']
+    ].map(function (r) { return '<tr><td class="tg">' + r[1] + '</td><td>' + r[2] + '</td><td class="v" id="u-v-' + r[0] + '">--</td><td class="un">' + r[3] + '</td></tr>'; }).join('');
+    var ctl = [['lic', 'LIC-101', 'Level', '%'], ['fic', 'FIC-102', 'Aliran', 'm³/h'], ['tic', 'TIC-101', 'Suhu', '°C'], ['pic', 'PIC-101', 'Tekanan', 'mbar']].map(function (c) {
+      return '<tr><td class="tg">' + c[1] + '<small>' + c[2] + ' (' + c[3] + ')</small></td><td class="v" id="u-c-' + c[0] + '-pv">--</td>' +
+        '<td><input type="number" class="u-in" id="u-c-' + c[0] + '-sp" step="0.5"></td>' +
+        '<td><input type="number" class="u-in" id="u-c-' + c[0] + '-op" step="1" min="0" max="100"></td>' +
+        '<td class="am"><button class="btn sm" type="button" data-uc="' + c[0] + '" data-um="AUTO">A</button><button class="btn sm" type="button" data-uc="' + c[0] + '" data-um="MAN">M</button></td></tr>';
+    }).join('');
+    var panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.id = 'u-panel';
+    panel.style.display = 'none';
+    panel.innerHTML =
+      '<div class="panel-title">STARTUP / COMMISSIONING<span class="u-clk" id="u-clock">T+ 00:00:00</span></div>' +
+      '<div class="u-phase" id="u-phase">SIAGA</div>' +
+      '<div class="u-btns"><button class="btn go" type="button" data-ua="seq-start">▶ STARTUP OTOMATIS</button><button class="btn" type="button" data-ua="seq-stop">■ SHUTDOWN</button><button class="btn red" type="button" data-ua="esd">ESD</button><button class="btn" type="button" data-ua="reset">RESET TRIP</button></div>' +
+      seqHtml +
+      '<div class="u-speed"><span>Kecepatan waktu proses</span><div id="u-scale">' + SCALES.map(function (k) { return '<button class="btn sm" type="button" data-us="' + k + '">' + k + '×</button>'; }).join('') + '<button class="btn sm" type="button" data-ua="pause" id="u-pause">JEDA</button></div></div>' +
+      '<div class="u-sub">PERALATAN</div>' +
+      '<table class="u-tbl"><tr><td class="tg">XV-101</td><td>Katup isolasi masuk</td><td class="v" id="u-e-xv1">--</td><td class="am"><button class="btn sm" type="button" data-ua="xv1-open">BUKA</button><button class="btn sm" type="button" data-ua="xv1-close">TUTUP</button></td></tr>' +
+      '<tr><td class="tg">XV-102</td><td>Isolasi hisap pompa</td><td class="v" id="u-e-xv2">--</td><td class="am"><button class="btn sm" type="button" data-ua="xv2-open">BUKA</button><button class="btn sm" type="button" data-ua="xv2-close">TUTUP</button></td></tr>' +
+      '<tr><td class="tg">P-101</td><td>Pompa produk</td><td class="v" id="u-e-pump">--</td><td class="am"><button class="btn sm" type="button" data-ua="pump-start">START</button><button class="btn sm" type="button" data-ua="pump-stop">STOP</button></td></tr></table>' +
+      '<div class="u-sub">KONTROLER (PV · SP · OP %)</div>' +
+      '<table class="u-tbl u-ctl"><tr class="hd"><td>Loop</td><td>PV</td><td>SP</td><td>OP</td><td>A/M</td></tr>' + ctl + '</table>' +
+      '<div class="u-sub">INSTRUMEN (PV BER-NOISE)</div><table class="u-tbl">' + pvRows + '</table>' +
+      '<div class="u-sub">ALARM AKTIF</div><div id="u-al" class="u-al"></div>' +
+      '<div class="u-sub">TREN PROSES (30 menit waktu proses)</div><canvas class="chart" id="u-trend" width="340" height="230"></canvas>' +
+      '<div class="u-sub">LOG EVENT</div><div id="u-log" class="u-log"></div>';
+    right.insertBefore(panel, right.children[1] || null);
+
+    /* strip status di atas kanvas */
+    var bar = document.createElement('div');
+    bar.id = 'u-bar';
+    bar.style.display = 'none';
+    var cc = document.querySelector('.center-col');
+    if (cc) cc.appendChild(bar);
+
+    /* elemen manual yang disembunyikan pada mode startup */
+    ['sl-level', 'btn-fill', 'sl-temp'].forEach(function (id) {
+      var e = $(id), w = e && (e.closest('.btn-row') || e.closest('.slider-wrap'));
+      if (w) w.classList.add('m-only');
+    });
+    var pt = $('sl-level') && $('sl-level').closest('.panel');
+    if (pt) { pt.id = pt.id || 'm-panel'; U.mPanelTitle = pt.querySelector('.panel-title'); }
+
+    /* events */
+    panel.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.us) { U.setScale(+b.dataset.us); return; }
+      if (b.dataset.uc) { U.setMode(b.dataset.uc, b.dataset.um); return; }
+      var a = b.dataset.ua;
+      if (a === 'seq-start') { if (S.seq.kind === 'start') U.seqAbort(); else U.seqStart('start'); }
+      else if (a === 'seq-stop') { if (S.seq.kind === 'stop') U.seqAbort(); else U.seqStart('stop'); }
+      else if (a === 'esd') U.esd();
+      else if (a === 'reset') U.resetTrips();
+      else if (a === 'pause') U.togglePause();
+      else if (a === 'xv1-open') U.act('xv1', 1);
+      else if (a === 'xv1-close') U.act('xv1', 0);
+      else if (a === 'xv2-open') U.act('xv2', 1);
+      else if (a === 'xv2-close') U.act('xv2', 0);
+      else if (a === 'pump-start') U.act('pump', 1);
+      else if (a === 'pump-stop') U.act('pump', 0);
+    });
+    ['lic', 'fic', 'tic', 'pic'].forEach(function (id) {
+      $('u-c-' + id + '-sp').addEventListener('change', function (e) { U.setSP(id, +e.target.value); });
+      $('u-c-' + id + '-op').addEventListener('change', function (e) { U.setOP(id, +e.target.value); });
+    });
+    $('u-m-start').addEventListener('click', function () { U.setModeSim('startup'); });
+    $('u-m-manual').addEventListener('click', function () { U.setModeSim('manual'); });
+  }
+
+  U.setModeSim = function (m) {
+    var on = m === 'startup';
+    if (on === U.on && last.modeInit) return;
+    last.modeInit = true;
+    U.on = on;
+    document.body.classList.toggle('u-on', on);
+    var p = $('u-panel'), b = $('u-bar');
+    if (p) p.style.display = on ? '' : 'none';
+    if (b) b.style.display = on ? '' : 'none';
+    $('u-m-start').classList.toggle('active', on);
+    $('u-m-manual').classList.toggle('active', !on);
+    var note = $('u-mnote');
+    if (note) note.innerHTML = on
+      ? 'Plant mulai <b>dingin &amp; mati</b>. Tekan <b>STARTUP OTOMATIS</b> atau operasikan katup/pompa/kontroler sendiri. Semua PV naik/turun mengikuti proses.'
+      : 'Level diatur langsung (ISI / KOSONG / AUTO) tanpa dinamika plant — cocok untuk membandingkan metode ukur.';
+    if (U.mPanelTitle) U.mPanelTitle.textContent = on ? 'FLUIDA PROSES' : 'PROSES — ATUR LEVEL TANGKI';
+    var hint = document.querySelector('.hint');
+    if (hint) hint.innerHTML = on
+      ? 'Drag = putar &middot; Scroll = zoom &middot; X = X-Ray &middot; L = label &middot; Spasi = jeda &middot; &uarr;&darr; = SP level &plusmn;5 % &middot; Q = kualitas grafis'
+      : 'Drag = putar &middot; Scroll = zoom &middot; Klik kanan + drag = geser &middot; X = X-Ray &middot; Spasi = siklus otomatis &middot; &uarr;&darr; = level &plusmn;5 %';
+    U.labelsOn(on);
+    if (on) {
+      U.reset();
+      LK.P.auto = false;
+    } else {
+      P.auto = false; P.vel = 0; P.target = LK.pct();
+      var st = $('sl-temp');
+      if (st) { st.value = clamp(Math.round(P.T), +st.min, +st.max); st.dispatchEvent(new Event('input')); }
+    }
+    last = { modeInit: true };
+    if (LK.refreshProc) LK.refreshProc();
+  };
+
+  function alarmChips() {
+    var out = '';
+    ALARMS.forEach(function (a) { if (S.al[a.id]) out += '<span class="chip ' + a.cls + '">' + a.id + '</span>'; });
+    if (S.trip.pump) out += '<span class="chip bad">P-101 TRIP</span>';
+    if (S.trip.heat) out += '<span class="chip bad">E-101 TRIP</span>';
+    if (S.trip.xv1) out += '<span class="chip bad">XV-101 ESD</span>';
+    return out || '<span class="u-none">— tidak ada alarm —</span>';
+  }
+  function posTxt(v, openTxt, closeTxt) {
+    if (v >= 0.995) return openTxt;
+    if (v <= 0.005) return closeTxt;
+    return Math.round(v * 100) + ' %';
+  }
+
+  U.hud = function () {
+    if (!U.on || !S) return;
+    var p = S.pv, q = S.seq;
+    var bd = U.badge();
+
+    setT('u-clock', 'T+ ' + hms(S.clock) + (U.paused ? ' · JEDA' : ''));
+    var phase = 'SIAGA — plant dingin, menunggu perintah';
+    if (q.kind) phase = (q.kind === 'start' ? 'STARTUP ' : 'SHUTDOWN ') + (q.i + 1) + ' / ' + (SEQ[q.kind].length - 1) + ' — ' + SEQ[q.kind][q.i].t;
+    else if (q.done === 'start') phase = 'PRODUKSI NORMAL — semua loop pada SP';
+    else if (q.done === 'stop') phase = 'PLANT SHUTDOWN';
+    else if (S.xv1.pos > 0.02 || S.pump.spd > 0.02) phase = 'OPERASI MANUAL';
+    setT('u-phase', phase);
+    setC('u-phase', 'u-phase' + (q.kind ? ' run' : q.done === 'start' ? ' ok' : ''));
+    var showK = q.kind === 'stop' || (!q.kind && q.done === 'stop') ? 'stop' : 'start';
+    ['start', 'stop'].forEach(function (k) {
+      var ol = $('u-seq-' + k);
+      if (ol) ol.style.display = k === showK ? '' : 'none';
+      SEQ[k].forEach(function (st, i) {
+        var cls = '';
+        if (q.kind === k) cls = i < q.i ? 'done' : i === q.i ? 'act' : '';
+        else if (q.done === k) cls = 'done';
+        setC('u-s-' + k + i, cls);
+      });
+    });
+    var bs = document.querySelector('[data-ua="seq-start"]'), bt = document.querySelector('[data-ua="seq-stop"]');
+    if (bs) bs.textContent = q.kind === 'start' ? '■ HENTIKAN SEQUENCE' : '▶ STARTUP OTOMATIS';
+    if (bt) bt.textContent = q.kind === 'stop' ? '■ HENTIKAN SEQUENCE' : '■ SHUTDOWN';
+    var sc = $('u-scale');
+    if (sc) [].forEach.call(sc.querySelectorAll('[data-us]'), function (b) { var on = +b.dataset.us === U.scale; if (last['sc' + b.dataset.us] !== on) { last['sc' + b.dataset.us] = on; b.classList.toggle('active', on); } });
+    var pb = $('u-pause'); if (pb && last.pz !== U.paused) { last.pz = U.paused; pb.classList.toggle('active', U.paused); }
+
+    /* peralatan */
+    setT('u-e-xv1', posTxt(S.xv1.pos, 'TERBUKA', 'TERTUTUP') + (S.trip.xv1 ? ' · ESD' : ''));
+    setT('u-e-xv2', posTxt(S.xv2.pos, 'TERBUKA', 'TERTUTUP'));
+    setT('u-e-pump', S.trip.pump ? 'TRIP' : S.pump.spd > 0.97 && S.pumpCmd ? 'RUN' : S.pumpCmd ? 'STARTING ' + Math.round(S.pump.spd * 100) + ' %' : S.pump.spd > 0.02 ? 'COAST ' + Math.round(S.pump.spd * 100) + ' %' : 'STOP');
+
+    /* kontroler */
+    var unit = { lic: f2, fic: f2, tic: f2, pic: f1 }, pvOf = { lic: p.lt, fic: p.ft2, tic: p.tt, pic: p.pt };
+    ['lic', 'fic', 'tic', 'pic'].forEach(function (id) {
+      var c = S[id];
+      setT('u-c-' + id + '-pv', unit[id](pvOf[id]));
+      var sp = $('u-c-' + id + '-sp'), op = $('u-c-' + id + '-op');
+      if (sp && document.activeElement !== sp) { var sv = c.sp.toFixed(1); if (last['sp' + id] !== sv) { last['sp' + id] = sv; sp.value = sv; } }
+      if (op) {
+        var man = c.mode === 'MAN';
+        if (last['om' + id] !== man) { last['om' + id] = man; op.disabled = !man; op.classList.toggle('auto', !man); }
+        if (document.activeElement !== op) { var ov = c.op.toFixed(1); if (last['op' + id] !== ov) { last['op' + id] = ov; op.value = ov; } }
+      }
+      [].forEach.call(document.querySelectorAll('[data-uc="' + id + '"]'), function (b) {
+        var on = b.dataset.um === c.mode;
+        if (last['m' + id + b.dataset.um] !== on) { last['m' + id + b.dataset.um] = on; b.classList.toggle('active', on); }
+      });
+    });
+
+    /* PV */
+    var heatKW = S.qh / 1000;
+    setT('u-v-lt', f2(p.lt) + '  (' + f2((p.lt / 100) * H) + ' m)');
+    setT('u-v-ft1', f1(p.ft1)); setT('u-v-ft2', f1(p.ft2));
+    setT('u-v-tt', f1(p.tt)); setT('u-v-pt', f1(p.pt));
+    setT('u-v-zlv', f1(S.lv.pos * 100)); setT('u-v-zfv', f1(S.fv.pos * 100));
+    setT('u-v-eh', f1(heatKW)); setT('u-v-ep', Math.round(S.pump.spd * 100) + '');
+    setC('u-v-lt', 'v' + (S.al.LAHH || S.al.LALL ? ' bad' : S.al.LAH || S.al.LAL ? ' warn' : ''));
+    setC('u-v-tt', 'v' + (S.al.TAHH ? ' bad' : S.al.TAH ? ' warn' : ''));
+    setC('u-v-pt', 'v' + (S.al.PAH || S.al.PAL ? ' warn' : ''));
+
+    /* alarm & log */
+    var al = alarmChips();
+    setH('u-al', al);
+    if (last.logVer !== S.logVer) {
+      last.logVer = S.logVer;
+      setH('u-log', S.log.slice(0, 14).map(function (l) { return '<div class="' + l.cls + '"><b>' + hms(l.t) + '</b> ' + l.txt + '</div>'; }).join(''));
+    }
+
+    /* status bar di atas kanvas */
+    setH('u-bar', '<b>' + bd.text.split(' · ')[0] + '</b><span>LIC <i>' + f1(p.lt) + ' %</i></span><span>FIC <i>' + f1(p.ft2) + ' m³/h</i></span><span>TIC <i>' + f1(p.tt) + ' °C</i></span><span>PIC <i>' + f1(p.pt) + ' mbar</i></span><span class="dim">T+ ' + hms(S.clock) + ' · ' + U.scale + '×' + (U.paused ? ' · JEDA' : '') + '</span>');
+
+    /* label 3D */
+    if (V3) {
+      V3.lblLV.set('LV-101 <b>' + f1(S.lv.pos * 100) + ' %</b>');
+      V3.lblFT1.set('FT-101 <b>' + f1(p.ft1) + '</b> m³/h');
+      V3.lblXV1.set('XV-101 <b>' + posTxt(S.xv1.pos, 'TERBUKA', 'TERTUTUP') + '</b>');
+      V3.lblXV2.set('XV-102 <b>' + posTxt(S.xv2.pos, 'TERBUKA', 'TERTUTUP') + '</b>');
+      V3.lblFV.set('FV-102 <b>' + f1(S.fv.pos * 100) + ' %</b>');
+      V3.lblFT2.set('FT-102 <b>' + f1(p.ft2) + '</b> m³/h');
+      V3.lblPump.set('P-101 <b>' + (S.trip.pump ? 'TRIP' : Math.round(S.pump.spd * 100) + ' %') + '</b>');
+      V3.lblHeat.set('E-101 <b>' + f1(heatKW) + ' kW</b>' + (S.heatOk ? '' : '<small>DIBLOK interlock</small>'));
+      V3.lblTT.set('TT-101 <b>' + f1(p.tt) + ' °C</b>');
+      V3.lblN2.set('PCV-101A N₂ <b>' + Math.round(S.pcvN.pos * 100) + ' %</b>');
+      V3.lblVent.set('PCV-101B vent <b>' + Math.round(S.pcvV.pos * 100) + ' %</b>');
+      V3.lblLIC.set('LIC-101 <b>' + f1(p.lt) + ' %</b> · SP ' + f1(S.lic.sp) + ' ' + S.lic.mode);
+      V3.ft1.screen.set(f1(p.ft1), 'm³/h', '#7dffb0');
+      V3.ft2.screen.set(f1(p.ft2), 'm³/h', '#7dffb0');
+      V3.tt.screen.set(f1(p.tt), '°C', '#ffd27f');
+    }
+    U.drawTrend();
+  };
+
+  /* ---------------- tren proses: 4 strip (level, aliran, suhu, tekanan) ---------------- */
+  U.drawTrend = function () {
+    var cv = $('u-trend');
+    if (!cv || !cv.clientWidth) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = Math.round(w * 230 / 340);
+    var W = Math.round(w * dpr), Hh = Math.round(h * dpr);
+    if (cv.width !== W || cv.height !== Hh) { cv.width = W; cv.height = Hh; }
+    var c = cv.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, w, h);
+    var strips = [
+      { k: 'lt', s: 'ls', lo: 0, hi: 100, col: '#7dffb0', name: 'LEVEL %', fmt: f1 },
+      { k: 'ft', s: 'fs', lo: 0, hi: 50, col: '#4fe3ff', name: 'ALIRAN', fmt: f1, k2: 'fi', col2: '#9dff7a' },
+      { k: 'tt', s: 'ts', lo: 20, hi: 80, col: '#ffb648', name: 'SUHU °C', fmt: f1 },
+      { k: 'pt', s: 'ps', lo: -5, hi: 50, col: '#c792ff', name: 'TEKANAN', fmt: f1 }
+    ];
+    var L = 6, Rr = 72, gap = 4, sh = (h - gap * 3) / 4, pw = w - L - Rr;
+    var tr = S.trend, t1 = S.clock, win = 1800, t0 = t1 - win;
+    c.font = '10px "JetBrains Mono", monospace';
+    c.textBaseline = 'middle';
+    strips.forEach(function (st, si) {
+      var y0 = si * (sh + gap), Y = function (v) { return y0 + sh - ((clamp(v, st.lo, st.hi) - st.lo) / (st.hi - st.lo)) * sh; };
+      c.fillStyle = 'rgba(79,227,255,0.04)'; c.fillRect(L, y0, pw, sh);
+      c.strokeStyle = 'rgba(79,227,255,0.14)'; c.lineWidth = 1; c.strokeRect(L + 0.5, y0 + 0.5, pw - 1, sh - 1);
+      var X = function (t) { return L + ((t - t0) / win) * pw; };
+      function line(key, col, wd, dash) {
+        c.strokeStyle = col; c.lineWidth = wd; c.setLineDash(dash || []); c.beginPath();
+        var started = false;
+        for (var i = 0; i < tr.length; i++) {
+          if (tr[i].t < t0) continue;
+          var x = X(tr[i].t), y = Y(tr[i][key]);
+          if (!started) { c.moveTo(x, y); started = true; } else c.lineTo(x, y);
+        }
+        c.stroke(); c.setLineDash([]);
+      }
+      line(st.s, 'rgba(255,255,255,0.55)', 1, [3, 3]);
+      if (st.k2) line(st.k2, st.col2, 1.2);
+      line(st.k, st.col, 1.6);
+      var cur = tr.length ? tr[tr.length - 1] : null;
+      c.textAlign = 'left'; c.fillStyle = st.col;
+      c.fillText(st.name, L + pw + 6, y0 + 8);
+      c.fillStyle = '#d9e7f3'; c.font = '600 12px "JetBrains Mono", monospace';
+      if (cur) c.fillText(st.fmt(cur[st.k]), L + pw + 6, y0 + sh - 9);
+      c.font = '10px "JetBrains Mono", monospace';
+    });
+  };
+
+  /* dipanggil dari LK.start() setelah HUD statis dibuat */
+  U.init = function () {
+    buildPanel();
+    var mode = 'startup';
+    try { var q = new URLSearchParams(location.search).get('mode'); if (q === 'manual') mode = 'manual'; } catch (e) { /* abaikan */ }
+    U.setModeSim(mode);
+  };
 })();
 </script>
 <script>
