@@ -4664,13 +4664,17 @@ function suTabungTruck(K) {
   const PILE = 60, mkPile = (cx, cz) => { const p = mk(PILE); p.forEach((a) => F(a)); n.add(p[0], p[1]); place(p, PILE, (q) => { const l = Math.floor(q / 30), r = q % 30, ix = Math.floor(r / 6), iz = r % 6; return [cx + (ix - 2) * 0.36, 0.25 + l * 0.5, cz + (iz - 2.5) * 0.36]; }); return p; };
   const pileK = mkPile(146.5, 18.2), pileS = mkPile(193.5, 18.2);
   /* --- jalur --- */
-  const P1 = Pg([[64, -3], [78, -3], [78, 22.5], [146, 22.5]], 6), P2 = Pg([[146, 22.5], [192, 22.5]], 6), P3 = Pg([[192, 22.5], [212, 22.5], [212, 25.5], [76, 25.5], [76, -3], [64, -3]], 5);
+  /* jalan penghubung aspal: dari jalan filling (z 17.6, keluar pagar timur) ke jalan raya (z 24) */
+  const roadM = std(2763824, { roughness: 0.95 });
+  [[79, 17.6, 6, 4.4], [82, 20.7, 4.6, 10.6]].forEach(([x, z, w, d]) => { const r = new T.Mesh(new T.BoxGeometry(w, 0.06, d), roadM); r.position.set(x, 0.034, z); r.receiveShadow = true; n.add(r); });
+  const DOCK_OUT = [48, 18.5], DOCK_IN = [48, 16.5];
+  const P1 = Pg([DOCK_OUT, [76, 18.5], [81, 19.5], [82, 22.5], [88, 22.5], [146, 22.5]], 3.5), P2 = Pg([[146, 22.5], [192, 22.5]], 6), P3 = Pg([[192, 22.5], [212, 22.5], [212, 25.5], [86, 25.5], [81, 24], [81, 16.5], [76, 16.5], DOCK_IN], 3.5);
   const st = { s: "load", d: 0, t: 0, load: 0, units: 0, wheel: 0, yaw: Math.PI, yaw0: Math.PI, kp: 0, sp: 0 };
   const yawOf = (p) => Math.atan2(-p.hz, p.hx);
   const setPose = (p, yaw) => { g.position.set(p.x, 0, p.z); g.rotation.y = yaw; };
   const ease = (d, len, vmax) => Math.max(1.2, Math.min(vmax, d * 1.4 + 1.2, (len - d) * 1.4 + 0.6));
   const wrap = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
-  setPose(P1.at(0), Math.PI); /* mulai menghadap barat di dock */
+  setPose({ x: DOCK_IN[0], z: DOCK_IN[1] }, Math.PI); /* mulai menghadap barat di dock */
   h.push((S, dt) => {
     if (!(dt > 0)) return;
     const set = (cnt) => { truckT.forEach((a) => (a.count = cnt)); };
@@ -4689,8 +4693,9 @@ function suTabungTruck(K) {
         break;
       }
       case "turn": {   /* putar di tempat menghadap jalur keluar */
-        st.t += dt; const tgt = yawOf(P1.at(0)), k = Math.min(1, st.t / 2.2), e = k * k * (3 - 2 * k);
-        g.rotation.y = st.yaw0 + wrap(tgt - st.yaw0) * e; if (k >= 1) { st.s = "toK"; st.d = 0; }
+        st.t += dt; const tgt = yawOf(P1.at(0)), k = Math.min(1, st.t / 2.6), e = k * k * (3 - 2 * k);
+        g.rotation.y = st.yaw0 + wrap(tgt - st.yaw0) * e; g.position.set(DOCK_IN[0] + (DOCK_OUT[0] - DOCK_IN[0]) * e, 0, DOCK_IN[1] + (DOCK_OUT[1] - DOCK_IN[1]) * e);
+        if (k >= 1) { st.s = "toK"; st.d = 0; }
         break;
       }
       case "toK": go(P1, "unK", 9); break;
